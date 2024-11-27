@@ -37,7 +37,7 @@
   
           <!-- Sign-Up Form -->
           <form v-else @submit.prevent="handleSignUp">
-            <h2>Sign Up</h2>
+            <h2>𐙚 Sign Up 𐙚</h2>
             <div class="input-field">
               <label for="name">Full Name</label>
               <input
