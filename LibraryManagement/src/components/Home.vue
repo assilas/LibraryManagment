@@ -7,7 +7,7 @@
       </div>
       <div class="content">
         <h1>Books & Noble</h1>
-        <router-link to="/Catalogue.vue">Visit our books</router-link>
+        <router-link to="/Catalog">Visit our books</router-link>
       </div>
     </div>
   </template>
