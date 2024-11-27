@@ -1,16 +1,45 @@
 <template>
-    <div>
-      <nav>
-        <router-link to="/">Home</router-link>
-        <router-link to="/Catalog">Catalog</router-link>
-        <router-link to="Login">Login</router-link>
-        <router-link to="SignUp">SignUp</router-link>
-      </nav>
-      <router-view></router-view>
-    </div>
-  </template>
-  
-  <script>
+  <div id="app">
+    <header>
+      
+    </header>
+    <main>
+      <Auth />
+    </main>
+  </div>
+</template>
 
-  </script>
-  
+<script>
+import Auth from "./components/Auth.vue"; // Assure-toi que le chemin est correct
+
+export default {
+  name: "App",
+  components: {
+    Auth,
+  },
+};
+</script>
+
+<style scoped>
+/* Global styles */
+#app {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  color: #333;
+  background-color: #f4f4f9;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 1.8rem;
+  color: #8a2be2; /* Couleur violette pour le style */
+}
+</style>
