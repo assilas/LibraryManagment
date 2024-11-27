@@ -183,7 +183,6 @@
   position: relative; /* Nécessaire pour le soulignement */
   margin-bottom: 20px;
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Ajoute une ombre douce */
-  -webkit-text-stroke: 1px #ffffff; /* Contour blanc autour du texte */
   text-stroke: 1px #ffffff; /* Contour blanc pour les navigateurs non-webkit */
 }
 
