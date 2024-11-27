@@ -4,11 +4,11 @@
       <div class="auth-background">
         <!-- Form Container -->
         <div class="auth-form">
-          <h1>Library Management</h1>
+          <h1>Authentification</h1>
           
           <!-- Login Form -->
           <form v-if="!isSignUp" @submit.prevent="handleLogin">
-            <h2>Log In</h2>
+            <h2>𐙚 Log In 𐙚</h2>
             <div class="input-field">
               <label for="email">Email</label>
               <input
@@ -144,69 +144,82 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: linear-gradient(135deg, #f3f4f6, #e0e4f1); /* Soft gradient */
+    background: linear-gradient(135deg, #fbe8e4, #f6e6d9); /* Fond beige */
   }
   
   .auth-background {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 80%;
-    height: 80%;
+    width: 90%;
+    height: 90%; /* Augmente la hauteur */
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Image section */
-  .auth-image-container {
-    flex: 1;
-    background: url('/images/library1.jpg') center/cover no-repeat;
-    height: 100%;
-    opacity: 0.8;
+    background: transparent; /* Supprime le fond blanc */
   }
   
   /* Form Section */
   .auth-form {
     flex: 1.5;
-    background: #ffffff;
-    padding: 30px;
+    background: #fffaf4; /* Fond blanc uniquement pour le formulaire */
+    padding: 50px; /* Augmente l'espacement interne */
     border-radius: 15px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
+    max-width: 600px; /* Augmente la largeur */
+    min-height: 600px; /* Augmente la hauteur */
   }
   
   .auth-form h1 {
     text-align: center;
-    color: #4a4a89;
+    color: #d19090; /* Rose doux */
   }
   
   .auth-form h2 {
-    color: #4a4a89;
-    margin-bottom: 15px;
-  }
+  color: #8f3e3e; /* Couleur intérieure du texte */
+  font-size: 1.8rem; /* Taille de la police */
+  font-weight: bold; /* Épaisseur du texte */
+  text-align: center; /* Centrer le texte */
+  position: relative; /* Nécessaire pour le soulignement */
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Ajoute une ombre douce */
+  -webkit-text-stroke: 1px #ffffff; /* Contour blanc autour du texte */
+  text-stroke: 1px #ffffff; /* Contour blanc pour les navigateurs non-webkit */
+}
+
+/* Ajout d'une ligne de soulignement stylisée */
+.auth-form h2::after {
+  content: "";
+  display: block;
+  width: 60px; /* Longueur du soulignement */
+  height: 3px; /* Épaisseur du soulignement */
+  background: #d19090; /* Couleur du soulignement */
+  margin: 10px auto 0; /* Centrer le soulignement */
+  border-radius: 3px; /* Ajoute des bords arrondis au soulignement */
+}
   
   .input-field {
-    margin-bottom: 15px;
+    margin-bottom: 20px; /* Espacement entre les champs */
   }
   
   .input-field label {
     font-weight: bold;
-    color: #4a4a89;
+    color: #b36a6a; /* Rose légèrement plus foncé */
   }
   
   .input-field input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
+    padding: 15px; /* Espacement interne plus grand */
+    border: 1px solid #e4cfcf; /* Bordure rose pâle */
     border-radius: 5px;
     margin-top: 5px;
+    background-color: #fff5f0; /* Fond très clair */
   }
   
   button {
     width: 100%;
-    padding: 12px;
-    background-color: #4a4a89;
+    padding: 15px;
+    background-color: #d19090; /* Rose doux */
     color: white;
     border: none;
     border-radius: 5px;
@@ -215,13 +228,13 @@
   }
   
   button:hover {
-    background-color: #38387a;
+    background-color: #b36a6a; /* Rose légèrement plus foncé */
   }
   
   .toggle-text {
-    margin-top: 15px;
+    margin-top: 20px;
     text-align: center;
-    color: #4a4a89;
+    color: #b36a6a; /* Rose légèrement plus foncé */
     font-size: 0.9rem;
   }
   
@@ -229,6 +242,19 @@
     cursor: pointer;
     font-weight: bold;
     text-decoration: underline;
+  }
+  
+  /* Ajustements pour les petits écrans */
+  @media (max-width: 768px) {
+    .auth-background {
+      width: 95%;
+      height: auto;
+    }
+  
+    .auth-form {
+      padding: 30px;
+      max-width: 100%; /* Prend toute la largeur disponible */
+    }
   }
   </style>
   
