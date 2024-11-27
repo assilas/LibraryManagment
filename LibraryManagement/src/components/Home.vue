@@ -73,8 +73,10 @@
   
   a {
     color: white;
-    background-color: pink;
-    border: solid 1px pink;
+    background-color: rgba(193, 118, 128, 0.614);
+    border: solid 1px rgb(193, 118, 128);
+    border-radius: 12px;
+    padding : 8px;
     text-decoration:none;
   }
   </style>
