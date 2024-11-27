@@ -1,24 +1,10 @@
 <template>
-    <div :class="`login-container ${role}`">
+    <div class="login-container">
       <h1>Library Management</h1>
-      <div class="role-switch">
-        <button
-          :class="{ active: role === 'librarian' }"
-          @click="setRole('librarian')"
-        >
-          Librarian
-        </button>
-        <button
-          :class="{ active: role === 'member' }"
-          @click="setRole('member')"
-        >
-          Member
-        </button>
-      </div>
   
       <!-- Login Form -->
       <form v-if="!isSignUp" @submit.prevent="handleLogin">
-        <h2>{{ role === 'librarian' ? 'Librarian Login' : 'Member Login' }}</h2>
+        <h2>Login</h2>
         <div>
           <label for="email">Email</label>
           <input
@@ -47,7 +33,7 @@
   
       <!-- Sign-Up Form -->
       <form v-else @submit.prevent="handleSignUp">
-        <h2>{{ role === 'librarian' ? 'Librarian Sign Up' : 'Member Sign Up' }}</h2>
+        <h2>Sign Up</h2>
         <div>
           <label for="name">Full Name</label>
           <input
@@ -90,8 +76,7 @@
   export default {
     data() {
       return {
-        role: "librarian", // Default role
-        isSignUp: false, // Tracks if user is signing up
+        isSignUp: false, // Tracks if the user is signing up
         formData: {
           name: "",
           email: "",
@@ -106,9 +91,6 @@
       this.users = storedUsers ? JSON.parse(storedUsers) : {};
     },
     methods: {
-      setRole(selectedRole) {
-        this.role = selectedRole;
-      },
       toggleSignUp() {
         this.isSignUp = !this.isSignUp;
         this.resetForm();
@@ -130,7 +112,7 @@
         }
   
         // Create new user
-        this.users[email] = { name, password, role: this.role };
+        this.users[email] = { name, password };
         localStorage.setItem("users", JSON.stringify(this.users));
   
         alert("Sign-up successful! Please log in.");
@@ -142,8 +124,8 @@
   
         // Check if user exists
         const user = this.users[email];
-        if (!user || user.password !== password || user.role !== this.role) {
-          alert("Invalid credentials or role.");
+        if (!user || user.password !== password) {
+          alert("Invalid credentials.");
           return;
         }
   
@@ -155,7 +137,6 @@
   </script>
   
   <style scoped>
-  /* Same styling with small improvements */
   .login-container {
     width: 100%;
     max-width: 400px;
@@ -164,47 +145,13 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
-  }
-  
-  .login-container.librarian {
-    background-color: #e8e1f7; /* Light purple */
-    border: 2px solid #8a2be2; /* Darker purple */
-  }
-  
-  .login-container.member {
-    background-color: #ffe4e6; /* Light pink */
-    border: 2px solid #ff69b4; /* Hot pink */
+    background-color: #f4f4f9;
+    border: 2px solid #8a2be2; /* Violet border */
   }
   
   h1 {
     color: #333;
     margin-bottom: 20px;
-  }
-  
-  .role-switch {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  
-  .role-switch button {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: #f0f0f0;
-    cursor: pointer;
-    font-weight: bold;
-    border-radius: 4px;
-    margin: 0 5px;
-  }
-  
-  .role-switch button.active {
-    background: #8a2be2;
-    color: white;
-  }
-  
-  .role-switch .active:nth-child(2) {
-    background: #ff69b4;
   }
   
   form {
@@ -242,14 +189,6 @@
   
   button:hover {
     background: #6a1cb3;
-  }
-  
-  .login-container.member button {
-    background: #ff69b4;
-  }
-  
-  .login-container.member button:hover {
-    background: #e05493;
   }
   
   .toggle-text {
