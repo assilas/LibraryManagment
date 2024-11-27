@@ -218,7 +218,7 @@
   button {
     width: 100%;
     padding: 15px;
-    background-color: #d19090; /* Rose doux */
+    background-color: rgba(193,118,128,0.578); 
     color: white;
     border: none;
     border-radius: 5px;
