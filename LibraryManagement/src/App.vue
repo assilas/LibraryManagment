@@ -1,45 +1,42 @@
 <template>
-  <div id="app">
-    <header>
-      
-    </header>
-    <main>
-      <Auth />
-    </main>
-  </div>
+    <div>
+      <nav>
+        <img src="c:\Users\camil\Downloads\Books_and_Noble_Logo-removebg-preview.png" alt="B&Nlogo" width="150px" height="80px">
+        <router-link to="/">Home</router-link>
+        <router-link to="/Catalog">Catalog</router-link>
+        <router-link to="/Authentification">Authentification</router-link>
+      </nav>
+      <router-view></router-view>
+    </div>
 </template>
-
+  
 <script>
-import Auth from "./components/Auth.vue"; // Assure-toi que le chemin est correct
 
-export default {
-  name: "App",
-  components: {
-    Auth,
-  },
-};
 </script>
-
-<style scoped>
-/* Global styles */
-#app {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  color: #333;
-  background-color: #f4f4f9;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  
+<style>
+    nav {
+    display: flex;
+    font-size: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+    background-color: rgba(193, 118, 128, 0.578);
+    padding: 12px;
+    border-radius: 8px;
 }
 
-header {
-  margin-bottom: 20px;
+
+nav a {
+    margin: 0 25px;
+    text-decoration: none;
+    color: rgba(198, 78, 94, 0.721);
+    font-weight: bold;
+    transition: color 0.3s ease;
+    transform : translateY(30%);
 }
 
-h1 {
-  font-size: 1.8rem;
-  color: #8a2be2; /* Couleur violette pour le style */
+
+nav a:hover {
+    color: rgba(198, 78, 94);
 }
 </style>
