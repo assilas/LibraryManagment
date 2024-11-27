@@ -1,7 +1,7 @@
 <template>
     <div>
       <nav>
-        <img src="LibraryManagement/src/assets/img/Books_and_Noble_Logo.png" alt="B&Nlogo" width="150px" height="80px">
+        <img src="@/assets/img/Books_and_Noble_Logo.png" alt="B&Nlogo" width="150px" height="80px">
         <router-link to="/">Home</router-link>
         <router-link to="/Catalog">Catalog</router-link>
         <router-link to="/Authentification">Authentification</router-link>
