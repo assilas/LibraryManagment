@@ -88,12 +88,17 @@
           email: "",
           password: "",
         },
-        users: {},
+        users: {}, // Stocke les utilisateurs enregistrés
       };
     },
     mounted() {
+      // Charger les utilisateurs stockés
       const storedUsers = localStorage.getItem("users");
       this.users = storedUsers ? JSON.parse(storedUsers) : {};
+  
+      // Charger l'état de connexion
+      const isLoggedIn = localStorage.getItem("userLoggedIn");
+      this.$root.isLoggedIn = isLoggedIn === "true"; // Défini dans la barre de navigation
     },
     methods: {
       toggleSignUp() {
@@ -115,6 +120,7 @@
           return;
         }
   
+        // Sauvegarder le nouvel utilisateur
         this.users[email] = { name, password };
         localStorage.setItem("users", JSON.stringify(this.users));
         alert("Sign-up successful! Please log in.");
@@ -131,11 +137,22 @@
         }
   
         alert(`Welcome back, ${user.name}!`);
+        // Marquer comme connecté
+        this.$root.isLoggedIn = true;
+        localStorage.setItem("userLoggedIn", "true");
+        this.$router.push("/MyAccount"); // Redirection vers "My Account"
         this.resetForm();
+      },
+      handleLogout() {
+        // Déconnexion
+        this.$root.isLoggedIn = false;
+        localStorage.removeItem("userLoggedIn");
+        this.$router.push("/");
       },
     },
   };
   </script>
+  
   
   <style scoped>
   /* Main container */
