@@ -3,9 +3,9 @@
       <nav>
         <img src="@/assets/img/Books_and_Noble_Logo.png" alt="B&Nlogo" width="150px" height="80px">
         <router-link to="/">Home</router-link>
-        <router-link v-if="isLoggedIn" to="/MyAccount">My Account</router-link>
         <router-link to="/Catalog">Catalog</router-link>
-        <router-link v-if="isLoggedIn" @click.prevent="handleLogout" to="/">Log Out</router-link>
+        <router-link v-if="isLoggedIn" to="/MyAccount">MyAccount</router-link>
+        <router-link v-if="isLoggedIn" @click.prevent="handleLogout" to="/">LogOut</router-link>
         <router-link v-else to="/Authentification">Authentification</router-link>
       </nav>
       <router-view></router-view>
