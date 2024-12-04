@@ -123,6 +123,10 @@
         // Sauvegarder le nouvel utilisateur
         this.users[email] = { name, password };
         localStorage.setItem("users", JSON.stringify(this.users));
+
+        // Sauvegarder le nom d'utilisateur actif
+         localStorage.setItem("userName", name);
+
         alert("Sign-up successful! Please log in.");
         this.isSignUp = false;
         this.resetForm();
