@@ -26,11 +26,23 @@
 
       <p class="account-name">{{ accountName }}</p>
       
-      <button @click="navigateTo('/BorrowingRecords')">Return a Book</button>
-      <button @click="navigateTo('/Catalog')">Borrow a Book</button>
-      <button @click="navigateTo('/BorrowingRecords')">See My Borrowing Records</button>
+    <div>
+      <button v-if="userRole === 'member'" @click="navigateTo('/BorrowingRecords')">Return a Book</button>
+      <button v-if="userRole === 'member'" @click="navigateTo('/Catalog')">Borrow a Book</button>
+      <button v-if="userRole === 'member'" @click="navigateTo('/BorrowingRecords')">See My Borrowing Records</button>
+    
+      <div v-if="userRole === 'librarian'">
+        <button @click="navigateTo('/ManageBooksReturn')">
+          Manage Book Returns
+        </button>
+        <button @click="navigateTo('/MembershipManagement')">
+          Manage Memberships
+        </button>
+      </div>
+    
     </div>
 
+    </div>
   </template>
   
   <script>
@@ -46,6 +58,7 @@
         'src/assets/img/avatar2.jpg',
         'src/assets/img/profileImage.jpg',
         ],
+        userRole: "member",
     };
   },
   created() {
@@ -53,7 +66,8 @@
     this.accountName = localStorage.getItem('userName')|| 'Guest';
     this.profileImage =
       localStorage.getItem('profileImage') || 'path/to/default-image.jpg'; // Remplacez par le chemin de votre image par défaut
-  },
+    this.userRole = localStorage.getItem("userRole") || "member";
+    },
     methods: {
       navigateTo(path) {
         this.$router.push(path);

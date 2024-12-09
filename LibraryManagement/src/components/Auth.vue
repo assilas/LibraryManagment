@@ -99,6 +99,10 @@
       // Charger l'état de connexion
       const isLoggedIn = localStorage.getItem("userLoggedIn");
       this.$root.isLoggedIn = isLoggedIn === "true"; // Défini dans la barre de navigation
+      
+      // Charger le rôle utilisateur
+      const userRole = localStorage.getItem("userRole");
+      this.$root.userRole = userRole || null;
     },
     methods: {
       toggleSignUp() {
@@ -134,23 +138,50 @@
       handleLogin() {
         const { email, password } = this.formData;
   
+         // Vérifier si les identifiants correspondent
+      if (
+        email === "libraire_admin@gmail.com" &&
+        password === "libraire123"
+      ) {
+        // Librarian
+        this.$root.userRole = "librarian";
+        localStorage.setItem("userRole", "librarian");
+        this.$root.isLoggedIn = true;
+        localStorage.setItem("userLoggedIn", "true");
+        
+        // Définir le nom et la photo de profil de l'administrateur
+        this.$root.userName = "Librarian Admin"; 
+        this.$root.profilePhoto = "profileImage.jpg"; 
+        localStorage.setItem("userName", "Librarian Admin");
+        localStorage.setItem("profilePhoto", "librarian_profile.jpg");
+
+        alert("Welcome Librarian!");
+        this.$router.push("/myaccount");
+      } else {
+        // Member
         const user = this.users[email];
         if (!user || user.password !== password) {
           alert("Invalid credentials.");
           return;
         }
-  
-        alert(`Welcome back, ${user.name}!`);
-        // Marquer comme connecté
+
+        // Définir le rôle utilisateur
+        this.$root.userRole = "member";
+        localStorage.setItem("userRole", "member");
         this.$root.isLoggedIn = true;
         localStorage.setItem("userLoggedIn", "true");
-        this.$router.push("/MyAccount"); // Redirection vers "My Account"
-        this.resetForm();
-      },
+        alert(`Welcome back, ${user.name}!`);
+        this.$router.push("/myaccount");
+      }
+
+      this.resetForm();
+    },
       handleLogout() {
         // Déconnexion
         this.$root.isLoggedIn = false;
+        this.$root.userRole = null;
         localStorage.removeItem("userLoggedIn");
+        localStorage.removeItem("userRole");
         this.$router.push("/");
       },
     },
@@ -203,8 +234,7 @@
   text-align: center; /* Centrer le texte */
   position: relative; /* Nécessaire pour le soulignement */
   margin-bottom: 20px;
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Ajoute une ombre douce */
-  text-stroke: 1px #ffffff; /* Contour blanc pour les navigateurs non-webkit */
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Ajoute une ombre douce */ 
 }
 
 /* Ajout d'une ligne de soulignement stylisée */
