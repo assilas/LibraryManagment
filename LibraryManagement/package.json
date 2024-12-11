@@ -9,7 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "express": "^4.21.2",
     "jspdf": "^2.5.2",
+    "mysql2": "^3.11.5",
+    "sequelize": "^6.37.5",
     "vue": "^3.5.12"
   },
   "devDependencies": {

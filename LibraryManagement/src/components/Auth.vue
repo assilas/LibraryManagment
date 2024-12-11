@@ -1,3 +1,4 @@
+
 <template>
     <div class="auth-container">
       <!-- Main container -->
@@ -79,6 +80,8 @@
   </template>
   
   <script>
+
+  
   export default {
     data() {
       return {
