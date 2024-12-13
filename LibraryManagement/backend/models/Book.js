@@ -20,7 +20,7 @@ const Book = sequelize.define('Book', {
         type : DataTypes.STRING,
         allowNull: false,
     },
-    
+
 }, {
     timestamps: true,
     createdAt: 'createdAt',
