@@ -20,10 +20,7 @@ const User = sequelize.define('User', {
     allowNull: false,
   },
 }, {
-  timestamps: true, // Cette option active la gestion automatique des colonnes `createdAt` et `updatedAt`
-  // Vous pouvez aussi spécifier le nom des colonnes si vous le souhaitez
-  // createdAt: 'createdAt',
-  // updatedAt: 'updatedAt',
+  timestamps: true,
 });
 
 export default User;

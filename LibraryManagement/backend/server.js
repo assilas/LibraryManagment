@@ -1,9 +1,11 @@
 import express from 'express';
 import sequelize from './config/database.js'; // Assurez-vous que ce chemin est correct
-import User from './models/User.js';
+import booksRoutes from './routes/books.js';
+import usersRoutes from './routes/users.js';
 
 const app = express();
 const PORT = 3001;
+const HOST = 'http://localhost'; // Vous pouvez remplacer localhost par une IP si nécessaire
 
 // Middleware pour parser les requêtes JSON
 app.use(express.json());
@@ -15,7 +17,6 @@ app.use(express.json());
     console.log('Connexion à la base de données réussie.');
 
     // Synchronisation des modèles avec la base de données
-    // Utilisation de `alter: true` pour appliquer les changements sans supprimer les données
     await sequelize.sync({ alter: true });
     console.log('Les modèles sont synchronisés avec la base de données.');
 
@@ -24,6 +25,10 @@ app.use(express.json());
   }
 })();
 
+// Routes
+app.use('/books', booksRoutes);
+app.use('/users', usersRoutes);
+
 // Exemple de route
 app.get('/', (req, res) => {
   res.send('API de gestion de bibliothèque.');
@@ -31,5 +36,5 @@ app.get('/', (req, res) => {
 
 // Démarrage du serveur
 app.listen(PORT, () => {
-  console.log(`Serveur en cours d’exécution sur le port ${PORT}`);
+  console.log(`Serveur en cours d’exécution sur ${HOST}:${PORT}`);
 });

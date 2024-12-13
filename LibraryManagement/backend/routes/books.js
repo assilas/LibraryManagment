@@ -27,4 +27,51 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Mettre à jour un livre
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, author, genre, publishedYear } = req.body;
+
+    try {
+        const book = await Book.findByPk(id);
+
+        if (!book) {
+            return res.status(404).send('Livre non trouvé');
+        }
+
+        // Mise à jour des informations du livre
+        book.title = title || book.title;
+        book.author = author || book.author;
+        book.genre = genre || book.genre;
+        book.publishedYear = publishedYear || book.publishedYear;
+
+        await book.save();
+
+        res.json({ success: true, book });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erreur du serveur');
+    }
+});
+
+// Supprimer un livre
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const book = await Book.findByPk(id);
+
+        if (!book) {
+            return res.status(404).send('Livre non trouvé');
+        }
+
+        await book.destroy();
+
+        res.json({ success: true, message: 'Livre supprimé avec succès' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erreur du serveur');
+    }
+});
+
 export default router;

@@ -16,6 +16,16 @@ const Book = sequelize.define('Book', {
     publishedYear: {
         type: DataTypes.INTEGER,
     },
+    summary : {
+        type : DataTypes.STRING,
+        allowNull: false,
+    },
+    
+}, {
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    tableName: 'books',
 });
 
 export default Book;
