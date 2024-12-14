@@ -2,7 +2,9 @@ import express from 'express';
 import sequelize from './config/database.js'; // Assurez-vous que ce chemin est correct
 import booksRoutes from './routes/books.js';
 import usersRoutes from './routes/users.js';
+import cors from 'cors';
 
+app.use(cors());
 const app = express();
 const PORT = 3001;
 const HOST = 'http://localhost'; // Vous pouvez remplacer localhost par une IP si nécessaire
