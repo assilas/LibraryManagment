@@ -17,10 +17,14 @@ const Book = sequelize.define('Book', {
         type: DataTypes.INTEGER,
     },
     summary : {
-        type : DataTypes.STRING,
+        type : DataTypes.TEXT,
         allowNull: false,
     },
-
+    cover: { 
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'https://via.placeholder.com/150x220?text=Pas+de+couverture',
+    },
 }, {
     timestamps: true,
     createdAt: 'createdAt',

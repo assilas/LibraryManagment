@@ -4,8 +4,10 @@ import booksRoutes from './routes/books.js';
 import usersRoutes from './routes/users.js';
 import cors from 'cors';
 
-app.use(cors());
-const app = express();
+const app = express(); // Déclare app avant de l'utiliser
+
+app.use(cors());  // Permet les requêtes provenant de n'importe quelle origine
+
 const PORT = 3001;
 const HOST = 'http://localhost'; // Vous pouvez remplacer localhost par une IP si nécessaire
 
