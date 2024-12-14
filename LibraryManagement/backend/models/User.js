@@ -19,6 +19,25 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  firstName: { // Prénom
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  lastName: { // Nom
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  phoneNumber: { // Numéro de téléphone
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      is: /^[0-9]{10}$/, // Vérifie que le numéro contient exactement 10 chiffres
+    },
+  },
+  address: { // Adresse postale
+    type: DataTypes.STRING,
+    allowNull: true, 
+  },
 }, {
   timestamps: true,
 });
