@@ -16,10 +16,10 @@ router.get('/', async (req, res) => {
 
 // Créer un nouvel utilisateur
 router.post('/', async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, firstName, lastName, phoneNumber, address } = req.body;
 
     try {
-        const newUser = await User.create({ username, email, password });
+        const newUser = await User.create({ username, email, password, firstName, lastName, phoneNumber, address });
         res.status(201).json({ success: true, user: newUser });
     } catch (error) {
         console.error(error);
@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
 // Mettre à jour un utilisateur
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { username, email, password } = req.body;
+    const { username, email, password, firstName, lastName, phoneNumber, address } = req.body;
 
     try {
         const user = await User.findByPk(id);
@@ -43,6 +43,10 @@ router.put('/:id', async (req, res) => {
         user.username = username || user.username;
         user.email = email || user.email;
         user.password = password || user.password;
+        user.firstName = firstName || user.firstName;
+        user.lastName = lastName || user.lastName;
+        user.phoneNumber = phoneNumber || user.phoneNumber;
+        user.address = address || user.address;
 
         await user.save();
 
