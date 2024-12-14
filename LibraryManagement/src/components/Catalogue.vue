@@ -15,39 +15,27 @@
   
   <script>
   import { ref } from 'vue';
+  import axios from 'axios';
   
   export default {
     name: 'BookCatalog',
     setup() {
-      const books = ref([
-        {
-          id: 1,
-          title: 'Le Petit Prince',
-          author: 'Antoine de Saint-Exupéry',
-          cover: 'https://via.placeholder.com/150x220?text=Le+Petit+Prince',
-        },
-        {
-          id: 2,
-          title: '1984',
-          author: 'George Orwell',
-          cover: 'https://via.placeholder.com/150x220?text=1984',
-        },
-        {
-          id: 3,
-          title: 'Les Misérables',
-          author: 'Victor Hugo',
-          cover: 'https://via.placeholder.com/150x220?text=Les+Misérables',
-        },
-        {
-          id: 4,
-          title: 'L’Étranger',
-          author: 'Albert Camus',
-          cover: 'https://via.placeholder.com/150x220?text=L’Étranger',
-        },
-        // Ajoutez autant de livres que vous le souhaitez
-      ]);
-  
-      return {
+      const books = ref([]);
+      
+      const fetchBooks = async() => {
+        try{
+          const response = await axios.get('http://localhost:3001/books');
+          books.value = response.data;
+        } catch(error){
+          console.error("Erreur lors de la récupération des livres", error);
+        }
+      };
+
+      onMounted(() => {
+        feetchBoooks();
+      });
+      
+      return{
         books,
       };
     },
