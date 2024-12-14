@@ -119,25 +119,32 @@
           password: "",
         };
       },
-      handleSignUp() {
-        const { name, email, password } = this.formData;
-  
-        if (this.users[email]) {
-          alert("This email is already registered.");
-          return;
-        }
-  
-        // Sauvegarder le nouvel utilisateur
-        this.users[email] = { name, password };
-        localStorage.setItem("users", JSON.stringify(this.users));
+      async handleSignUp() {
+    const { name, email, password } = this.formData;
 
-        // Sauvegarder le nom d'utilisateur actif
-         localStorage.setItem("userName", name);
+    try {
+      const response = await fetch('http://localhost:3001/users/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: name, email, password }),
+      });
 
-        alert("Sign-up successful! Please log in.");
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Sign-up successful! Please log in.');
         this.isSignUp = false;
         this.resetForm();
-      },
+      } else {
+        alert(result.error || 'Failed to sign up.');
+      }
+    } catch (error) {
+      console.error('Error during sign-up:', error);
+      alert('An error occurred during sign-up. Please try again.');
+    }
+  },
       handleLogin() {
         const { email, password } = this.formData;
   
