@@ -8,7 +8,6 @@ router.get('/', async (req, res) => {
     try {
         const books = await Book.findAll();
         const booksData = books.map(book => book.toJSON());  // Sérialiser les données
-        console.log(booksData);  // Vérifie les données ici
         res.json(booksData);
     } catch (error) {
         console.error(error);
@@ -16,7 +15,34 @@ router.get('/', async (req, res) => {
     }
 });
 
-
+// Fonction pour convertir un titre formaté en URL vers une forme lisible (ex: "le-grand-livre" => "Le Grand Livre")
+const denormalizeTitle = (title) => {
+    return title
+      .split('-')       // Remplace les tirets par des espaces
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))  // Met la première lettre en majuscule
+      .join(' ');       // Rejoint les mots avec des espaces
+  };
+  
+  // Récupérer un livre par son titre formaté
+  router.get('/:title', async (req, res) => {
+    const { title } = req.params;
+  
+    try {
+      const formattedTitle = denormalizeTitle(title);  // Convertit le titre formaté en version normale
+      const book = await Book.findOne({ where: { title: formattedTitle } });
+  
+      if (!book) {
+        return res.status(404).send('Livre non trouvé');
+      }
+  
+      res.json(book);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Erreur du serveur');
+    }
+  });
+  
+  
 
 
 // Ajouter un nouveau livre

@@ -2,25 +2,31 @@
   <div class="catalog">
     <h1>Catalogue de Livres</h1>
     <div class="book-grid">
-      <div class="book-card" v-for="book in books" :key="book.id">
-        <!-- Vérifie si la couverture est définie, sinon utiliser une image par défaut -->
-        <img :src="book.cover || 'https://via.placeholder.com/150x220?text=Pas+de+couverture'" :alt="`Couverture de ${book.title}`" />
-        <div class="book-info">
-          <!-- Vérifie si le titre et l'auteur sont définis -->
-          <h2>{{ book.title || 'Titre non disponible' }}</h2>
-          <p>{{ book.author || 'Auteur inconnu' }}</p>
+      <!-- Le router-link enveloppe toute la carte -->
+      <router-link 
+        v-for="book in books" 
+        :key="book.id" 
+        :to="`/book/${formatTitle(book.title)}`" 
+        class="book-card-link"
+      >
+        <div class="book-card">
+          <img :src="book.cover || 'https://via.placeholder.com/150x220?text=Pas+de+couverture'" :alt="`Couverture de ${book.title}`" />
+          <div class="book-info">
+            <h2>{{ book.title || 'Titre non disponible' }}</h2>
+            <p>{{ book.author || 'Auteur inconnu' }}</p>
+          </div>
         </div>
-      </div>
+      </router-link>
     </div>
   </div>
 </template>
 
+
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 
-// Configure axios pour utiliser l'URL de base de ton serveur backend
-axios.defaults.baseURL = 'http://localhost:3001'; // Assure-toi que c'est l'URL correcte
+axios.defaults.baseURL = 'http://localhost:3001';
 
 export default {
   name: 'BookCatalog',
@@ -30,20 +36,26 @@ export default {
     const fetchBooks = async () => {
       try {
         const response = await axios.get('/books');
-        console.log(response.data); // Vérifie les livres dans la console
         books.value = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération des livres', error);
       }
     };
 
+    // Appel à fetchBooks lors du montage du composant
     onMounted(fetchBooks);
 
-    return { books };
-  }
-};
 
+
+    const formatTitle = (title) => {
+      return title.toLowerCase().replace(/\s+/g, '-'); // Remplacer les espaces par des tirets
+    };
+
+    return { books, formatTitle };
+  },
+};
 </script>
+
 
 <style scoped>
 /* Style comme tu l'avais prévu */
@@ -65,11 +77,18 @@ export default {
   border-radius: 8px;
   padding: 10px;
   transition: transform 0.2s;
+  cursor: pointer;       /* Curseur en forme de main */
 }
 
 .book-card:hover {
   transform: scale(1.05);
 }
+
+.book-card-link {
+  text-decoration: none; /* Enlève le soulignement */
+  color: inherit;        /* Utilise la couleur par défaut */
+}
+
 
 .book-card img {
   width: 100%;
