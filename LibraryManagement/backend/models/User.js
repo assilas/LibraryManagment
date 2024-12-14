@@ -38,6 +38,16 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true, 
   },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
+    allowNull: false,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
+    allowNull: false,
+  },
 }, {
   timestamps: true,
 });
