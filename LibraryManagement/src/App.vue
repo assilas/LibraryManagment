@@ -15,7 +15,7 @@
       <!-- Lien pour les utilisateurs non connectés -->
       <router-link v-else to="/Authentification">Authentification</router-link>
     </nav>
-      <router-view></router-view>
+    <router-view :key="$route.fullPath" />
     </div>
 </template>
   
