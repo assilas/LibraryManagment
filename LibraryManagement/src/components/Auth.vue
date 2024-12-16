@@ -108,6 +108,30 @@
       this.$root.userRole = userRole || null;
     },
     methods: {
+      async loginUser() {
+        try {
+            const response = await this.$http.post('/login', { email: this.email, password: this.password });
+
+            // Vérification si l'utilisateur est un libraire
+            if (response.data.role === 'librarian') {
+                // Si c'est un libraire, on met à jour le localStorage et on redirige
+                localStorage.setItem('userRole', 'librarian');
+                localStorage.setItem('token', response.data.token);
+                this.$root.userRole = 'librarian';
+                this.$router.push('/MyAccount');
+            } else {
+                // Gérer les autres utilisateurs (membres)
+                localStorage.setItem('userRole', response.data.role);
+                localStorage.setItem('token', response.data.token);
+                this.$root.userRole = response.data.role;
+                this.$router.push('/Dashboard'); // Redirection vers le tableau de bord
+            }
+
+            this.$root.isLoggedIn = true; // Met à jour l'état de connexion
+        } catch (error) {
+            alert('Invalid credentials');
+        }
+    },
       toggleSignUp() {
         this.isSignUp = !this.isSignUp;
         this.resetForm();
@@ -120,72 +144,64 @@
         };
       },
       async handleSignUp() {
-    const { name, email, password } = this.formData;
+        const { name, email, password } = this.formData;
 
-    try {
-      const response = await fetch('http://localhost:3001/users/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: name, email, password }),
+        try {
+          const response = await fetch('http://localhost:3001/users/signup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username: name, email, password }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            alert('Sign-up successful! Please log in.');
+            this.isSignUp = false;
+            this.resetForm();
+          } else {
+            alert(result.error || 'Failed to sign up.');
+          }
+        } catch (error) {
+          console.error('Error during sign-up:', error);
+          alert('An error occurred during sign-up. Please try again.');
+        }
+      },
+      async handleLogin() {
+  const { email, password } = this.formData;
+
+  try {
+    const response = await fetch('http://localhost:3001/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      alert('Login successful!');
+      localStorage.setItem('token', result.token); // Stocke le token
+      localStorage.setItem('userRole', result.user.role); // Stocke le rôle
+      localStorage.setItem('userName', result.user.username); // Stocke le nom
+
+      // Émet un événement pour mettre à jour l'état dans App.vue
+      this.$emit("update-login-state", {
+        isLoggedIn: true,
+        userRole: result.user.role,
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        alert('Sign-up successful! Please log in.');
-        this.isSignUp = false;
-        this.resetForm();
-      } else {
-        alert(result.error || 'Failed to sign up.');
-      }
-    } catch (error) {
-      console.error('Error during sign-up:', error);
-      alert('An error occurred during sign-up. Please try again.');
+      this.$router.push('/MyAccount');
+    } else {
+      alert(result.error || 'Login failed. Check your credentials.');
     }
-  },
-      handleLogin() {
-        const { email, password } = this.formData;
-  
-         // Vérifier si les identifiants correspondent
-      if (
-        email === "libraire_admin@gmail.com" &&
-        password === "libraire123"
-      ) {
-        // Librarian
-        this.$root.userRole = "librarian";
-        localStorage.setItem("userRole", "librarian");
-        this.$root.isLoggedIn = true;
-        localStorage.setItem("userLoggedIn", "true");
-        
-        // Définir le nom et la photo de profil de l'administrateur
-        this.$root.userName = "Librarian Admin"; 
-        this.$root.profilePhoto = "profileImage.jpg"; 
-        localStorage.setItem("userName", "Librarian Admin");
-        localStorage.setItem("profilePhoto", "librarian_profile.jpg");
-
-        alert("Welcome Librarian!");
-        this.$router.push("/myaccount");
-      } else {
-        // Member
-        const user = this.users[email];
-        if (!user || user.password !== password) {
-          alert("Invalid credentials.");
-          return;
-        }
-
-        // Définir le rôle utilisateur
-        this.$root.userRole = "member";
-        localStorage.setItem("userRole", "member");
-        this.$root.isLoggedIn = true;
-        localStorage.setItem("userLoggedIn", "true");
-        alert(`Welcome back, ${user.name}!`);
-        this.$router.push("/myaccount");
-      }
-
-      this.resetForm();
-    },
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('An error occurred during login. Please try again.');
+  }
+},
       handleLogout() {
         // Déconnexion
         this.$root.isLoggedIn = false;

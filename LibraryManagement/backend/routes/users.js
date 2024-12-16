@@ -1,108 +1,100 @@
 import express from 'express';
 import User from '../models/User.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
 // Create a new user (Sign-Up)
 router.post('/signup', async (req, res) => {
-  const { username, email, password } = req.body;
-
-  try {
-    // Create the user
-    const newUser = await User.create({
-      username,
-      email,
-      password,
-    });
-
-    res.status(201).json({ message: 'User created successfully!', user: newUser });
-  } catch (error) {
-    console.error('Error during user creation:', error);
-    res.status(500).json({ error: 'Failed to create user. Try again.' });
-  }
-});
+    const { username, email, password } = req.body;
+  
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      const newUser = await User.create({
+        username,
+        email,
+        password: hashedPassword,
+        role: 'member', // Définit le rôle par défaut à "member"
+      });
+  
+      res.status(201).json({ message: 'User created successfully!', user: newUser });
+    } catch (error) {
+      console.error('Error during user creation:', error);
+      res.status(500).json({ error: 'Failed to create user. Try again.' });
+    }
+  });
+  
+  
 
 // Login user
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+    const { email, password } = req.body;
 
-  try {
-    // Find the user
-    const user = await User.findOne({ where: { email } });
+    try {
+        // Vérification si c'est un libraire
+        if (email === 'librarian_admin@gmail.com' && password === 'librarian123') {
+            return res.status(200).json({
+                token: 'some-jwt-token',
+                role: 'librarian',
+                message: 'Login successful as librarian!'
+            });
+        }
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+        // Recherche d'un utilisateur dans la base de données
+        const user = await User.findOne({ where: { email } });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        // Vérification du mot de passe
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Invalid credentials.' });
+        }
+
+        // Si ce n'est pas un libraire, on continue avec l'utilisateur normal
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role }, // Inclure le rôle dans le token
+            'your_jwt_secret',
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({
+            message: 'Login successful!',
+            token,
+            user: { username: user.username, role: user.role }, // Inclure le rôle dans la réponse
+        });
+    } catch (error) {
+        console.error('Error during login:', error);
+        res.status(500).json({ error: 'Login failed. Try again.' });
     }
-
-    // Compare passwords
-    if (password !== user.password) {
-      return res.status(401).json({ error: 'Invalid credentials.' });
-    }
-
-    res.status(200).json({ message: 'Login successful!', user });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ error: 'Login failed. Try again.' });
-  }
 });
 
-// Get all users
-router.get('/', async (req, res) => {
-  try {
-    const users = await User.findAll();
-    res.status(200).json(users);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Failed to fetch users.' });
-  }
-});
 
-// Update a user by ID
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-  const { username, email, password } = req.body;
-
-  try {
-    const user = await User.findByPk(id);
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+// Get user profile
+router.get('/profile', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ msg: 'Authorization header missing or malformed' });
     }
-
-    // Update the user's fields
-    user.username = username || user.username;
-    user.email = email || user.email;
-    if (password) {
-      user.password = password; // Directly assign the new password
+  
+    const token = authHeader.split(' ')[1];
+  
+    try {
+      const decoded = jwt.verify(token, 'your_jwt_secret');
+      const user = await User.findByPk(decoded.id);
+      if (!user) {
+        return res.status(404).json({ msg: 'User not found' });
+      }
+      res.json({ username: user.username, role: user.role });
+    } catch (err) {
+      console.error('Token verification failed:', err);
+      res.status(401).json({ msg: 'Invalid or expired token' });
     }
-
-    await user.save();
-
-    res.status(200).json({ message: 'User updated successfully!', user });
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ error: 'Failed to update user.' });
-  }
-});
-
-// Delete a user by ID
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const user = await User.findByPk(id);
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-
-    await user.destroy();
-
-    res.status(200).json({ message: 'User deleted successfully!' });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ error: 'Failed to delete user.' });
-  }
-});
+  });
+  
 
 export default router;

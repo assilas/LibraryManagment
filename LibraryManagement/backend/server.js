@@ -16,18 +16,15 @@ app.use(express.json());
 
 // Synchronisation de la base de données
 (async () => {
-  try {
-    await sequelize.authenticate(); // Vérifie la connexion à la base de données
-    console.log('Connexion à la base de données réussie.');
-
-    // Synchronisation des modèles avec la base de données
-    await sequelize.sync({ alter: true });
-    console.log('Les modèles sont synchronisés avec la base de données.');
-
-  } catch (error) {
-    console.error('Erreur lors de la connexion à la base de données :', error);
-  }
-})();
+    try {
+      await sequelize.authenticate();
+      console.log('Database connected.');
+      await sequelize.sync({ alter: true });
+      console.log('Models synchronized.');
+    } catch (error) {
+      console.error('Database connection failed:', error);
+    }
+  })();
 
 // Routes
 app.use('/books', booksRoutes);
