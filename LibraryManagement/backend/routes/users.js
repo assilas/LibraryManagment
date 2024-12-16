@@ -88,43 +88,26 @@ router.post('/login', async (req, res) => {
 // Get user profile
 router.get('/profile', async (req, res) => {
   const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authorization header missing or malformed' });
+  }
 
-  console.log('Authorization Header Received:', authHeader);
+  const token = authHeader.split(' ')[1];
 
   try {
-    // Vérifie si c'est un libraire avec le token spécial
-    if (authHeader === 'librarian_token') {
-      console.log('Librarian token detected. Returning librarian profile.');
-      return res.status(200).json({
-        username: 'Librarian Admin',
-        role: 'librarian',
-      });
-    }
-
-    // Vérifie les utilisateurs normaux avec token JWT
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('Authorization header invalid or missing.');
-      return res.status(401).json({ msg: 'Authorization header missing or malformed' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    console.log('Decoded Token:', token);
-
     const decoded = jwt.verify(token, 'your_jwt_secret');
-    const user = await User.findByPk(decoded.id);
+    const user = await User.findByPk(decoded.id, {
+      attributes: ['username', 'email', 'address', 'phoneNumber'], // Inclure l'email ici
+    });
 
     if (!user) {
-      console.log('User not found in database.');
-      return res.status(404).json({ msg: 'User not found' });
+      return res.status(404).json({ error: 'User not found.' });
     }
 
-    res.status(200).json({
-      username: user.username,
-      role: user.role,
-    });
+    res.json(user); // Retourner les données de l'utilisateur
   } catch (err) {
-    console.error('Error during token verification:', err.message);
-    res.status(401).json({ msg: 'Invalid or expired token' });
+    console.error('Error fetching profile:', err);
+    res.status(401).json({ error: 'Invalid or expired token.' });
   }
 });
 
@@ -148,5 +131,91 @@ router.get('/members', async (req, res) => {
     }
   });
   
-
+  router.get("/email/:id", async (req, res) => {
+    const userId = req.params.id;
+  
+    try {
+      const user = await User.findByPk(userId, {
+        attributes: ["email"], // Récupère uniquement l'email
+      });
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found." });
+      }
+  
+      res.status(200).json({ email: user.email });
+    } catch (error) {
+      console.error("Error fetching user email:", error);
+      res.status(500).json({ error: "Failed to fetch user email." });
+    }
+  });
+  
+  router.put("/update", async (req, res) => {
+    const { username, email, address, phoneNumber } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+  
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized access. Token missing." });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, "your_jwt_secret");
+      const user = await User.findByPk(decoded.id);
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found." });
+      }
+  
+      // Mise à jour des informations utilisateur
+      user.username = username || user.username;
+      user.email = email || user.email;
+      user.address = address || user.address;
+      user.phoneNumber = phoneNumber || user.phoneNumber;
+      await user.save();
+  
+      res.status(200).json({ message: "User updated successfully." });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "Failed to update user information." });
+    }
+  });
+  
+  router.put("/finalize-borrow", async (req, res) => {
+    const { borrowedCount } = req.body; // Nombre de livres empruntés
+    const token = req.headers.authorization?.split(" ")[1];
+  
+    if (!token) {
+      console.error("Token missing");
+      return res.status(401).json({ error: "Unauthorized access. Token missing." });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, "your_jwt_secret");
+      console.log("Decoded token:", decoded);
+  
+      const user = await User.findByPk(decoded.id);
+      if (!user) {
+        console.error("User not found with ID:", decoded.id);
+        return res.status(404).json({ error: "User not found." });
+      }
+  
+      console.log("Current borrowedBooks:", user.borrowedBooks);
+      console.log("Books to borrow:", borrowedCount);
+  
+      // Mise à jour du nombre de livres empruntés
+      user.borrowedBooks += borrowedCount;
+      await user.save();
+  
+      console.log("Updated borrowedBooks:", user.borrowedBooks);
+      res.status(200).json({
+        message: `Borrowed ${borrowedCount} books successfully.`,
+        borrowedBooks: user.borrowedBooks,
+      });
+    } catch (error) {
+      console.error("Error during finalize borrow:", error.message);
+      res.status(500).json({ error: "Failed to finalize borrow." });
+    }
+  });
+  
+  
 export default router;
