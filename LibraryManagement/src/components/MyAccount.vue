@@ -30,9 +30,11 @@
 
     <!-- Buttons -->
     <div>
-      <button v-if="userRole === 'member'" @click="navigateTo('/BorrowingRecords')">Return a Book</button>
-      <button v-if="userRole === 'member'" @click="navigateTo('/Catalog')">Borrow a Book</button>
-      <button v-if="userRole === 'member'" @click="navigateTo('/BorrowingRecords')">See My Borrowing Records</button>
+      <div v-if="userRole === 'member'">
+        <button @click="navigateTo('/BorrowingRecords')">Return a Book</button>
+        <button @click="navigateTo('/Catalog')">Borrow a Book</button>
+        <button @click="navigateTo('/BorrowingRecords')">See My Borrowing Records</button>
+      </div>
 
       <div v-if="userRole === 'librarian'">
         <button @click="navigateTo('/ManageBooksReturn')">Manage Book Returns</button>
@@ -62,8 +64,11 @@ export default {
   },
   async created() {
     const token = localStorage.getItem('token');
+    const role = localStorage.getItem('userRole');
+
     console.log('Token from localStorage:', token);
 
+    // Vérifie si le token existe
     if (!token) {
       alert('No token found. Please log in.');
       this.$router.push('/auth');
@@ -71,21 +76,29 @@ export default {
     }
 
     try {
+      let headers;
+
+      // Gestion spécifique pour le libraire (token fictif)
+      if (role === 'librarian') {
+        headers = { Authorization: 'librarian_token' };
+      } else {
+        headers = { Authorization: `Bearer ${token}` };
+      }
+
       const res = await axios.get('http://localhost:3001/users/profile', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
       });
+
       console.log('API Response:', res.data);
 
+      // Mise à jour des données utilisateur
       this.accountName = res.data.username;
       this.userRole = res.data.role;
       this.profileImage = localStorage.getItem('profileImage') || this.defaultImage;
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        console.error('Unauthorized - Token invalid or expired');
-      } else {
-        console.error('Error fetching profile:', err);
-      }
+      console.error('Error fetching profile:', err);
       alert('Session expired or invalid. Please log in again.');
+      localStorage.clear();
       this.$router.push('/auth');
     }
   },

@@ -172,38 +172,56 @@
       },
 
       async handleLogin() {
-  const { email, password } = this.formData;
+        const { email, password } = this.formData;
 
-  try {
-    const response = await fetch('http://localhost:3001/users/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+        try {
+          // Vérification pour le libraire
+          if (email === 'librarian_admin@gmail.com' && password === 'librarian123') {
+            alert('Login successful as librarian!');
 
-    const result = await response.json();
+            localStorage.setItem('token', 'librarian_token');
+            localStorage.setItem('userRole', 'librarian');
+            localStorage.setItem('userName', 'Librarian Admin');
 
-    if (response.ok) {
-      alert('Login successful!');
-      localStorage.setItem('token', result.token); // Stocke le token
-      localStorage.setItem('userRole', result.user.role); // Stocke le rôle
-      localStorage.setItem('userName', result.user.username); // Stocke le nom
+            this.$emit('update-login-state', {
+              isLoggedIn: true,
+              userRole: 'librarian',
+            });
 
-      // Émet un événement pour mettre à jour l'état dans App.vue
-      this.$emit("update-login-state", {
-        isLoggedIn: true,
-        userRole: result.user.role,
-      });
+            this.$router.push('/MyAccount');
+            return;
+          }
 
-      this.$router.push('/MyAccount');
-    } else {
-      alert(result.error || 'Login failed. Check your credentials.');
-    }
-  } catch (err) {
-    console.error('Login error:', err);
-    alert('An error occurred during login. Please try again.');
-  }
-},
+          // Envoie une requête normale au backend pour les membres
+          const response = await fetch('http://localhost:3001/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            alert('Login successful!');
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('userRole', result.user.role);
+            localStorage.setItem('userName', result.user.username);
+
+            this.$emit('update-login-state', {
+              isLoggedIn: true,
+              userRole: result.user.role,
+            });
+
+            this.$router.push('/MyAccount');
+          } else {
+            alert(result.error || 'Login failed. Check your credentials.');
+          }
+        } catch (err) {
+          console.error('Login error:', err);
+          alert('An error occurred during login. Please try again.');
+        }
+      },
+
       handleLogout() {
         // Déconnexion
         this.$root.isLoggedIn = false;
