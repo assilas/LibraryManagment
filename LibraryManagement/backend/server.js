@@ -3,10 +3,14 @@ import sequelize from './config/database.js'; // Assurez-vous que ce chemin est 
 import booksRoutes from './routes/books.js';
 import usersRoutes from './routes/users.js';
 import cors from 'cors';
+import User from './models/User.js';
 
 const app = express(); // Déclare app avant de l'utiliser
 
-app.use(cors());  // Permet les requêtes provenant de n'importe quelle origine
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  }));  // Permet les requêtes provenant de n'importe quelle origine
 
 const PORT = 3001;
 const HOST = 'http://localhost'; // Vous pouvez remplacer localhost par une IP si nécessaire
@@ -19,7 +23,7 @@ app.use(express.json());
     try {
       await sequelize.authenticate();
       console.log('Database connected.');
-      await sequelize.sync({ force: false });
+      await sequelize.sync({ alter: true });
       console.log('Models synchronized.');
     } catch (error) {
       console.error('Database connection failed:', error);
@@ -35,6 +39,9 @@ app.get('/', (req, res) => {
   res.send('API de gestion de bibliothèque.');
 });
 
+// Endpoint pour récupérer les membres
+
+  
 // Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`Serveur en cours d’exécution sur ${HOST}:${PORT}`);
