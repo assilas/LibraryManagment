@@ -134,7 +134,7 @@ router.get('/members', async (req, res) => {
       const members = await User.findAll();
       const membersWithBorrowedBooks = members.map(member => ({
         id: member.id,
-        name: member.username,
+        username: member.username,
         email: member.email,
         role: member.role,
         borrowedBooks: member.borrowedBooks, // Champ virtuel
