@@ -97,6 +97,7 @@
   </div>
 </template>
 
+
 <script>
 import { ref, onMounted, watch } from "vue";
 import axios from "axios";
@@ -110,9 +111,23 @@ export default {
     const recommendedBooks = ref([]);
     const currentIndexByAuthor = ref(0);
     const currentIndexRecommended = ref(0);
-    const maxVisible = 4;
+    const maxVisible = ref(4); // Nombre d'éléments visibles dynamiquement
 
-    // Fonction pour récupérer les détails du livre
+    // Fonction pour ajuster dynamiquement maxVisible
+    const updateMaxVisible = () => {
+      const containerWidth = document.querySelector(".carousel-container")?.offsetWidth || window.innerWidth;
+      const bookCardWidth = 200; // Largeur approximative d'une carte (incluant les marges)
+      const arrowSpace = 80; // Espace réservé pour les flèches (40px de chaque côté)
+      
+      // Calculer le nombre maximum de livres visibles en fonction de la largeur du conteneur
+      maxVisible.value = Math.max(Math.floor((containerWidth - arrowSpace) / bookCardWidth), 1);
+    };
+
+
+
+
+
+    // Récupérer les détails du livre et suggestions
     const fetchBookDetails = async () => {
       try {
         const response = await axios.get(`/books/${props.title}`);
@@ -121,27 +136,24 @@ export default {
         const booksResponse = await axios.get("/books");
         const allBooks = booksResponse.data;
 
-        // "By the Same Author" : max 7 livres
-        sameAuthorBooks.value = allBooks
-          .filter((b) => b.author === book.value.author && b.title !== book.value.title)
-          .slice(0, 7);
+        // "By the Same Author"
+        sameAuthorBooks.value = allBooks.filter(
+          (b) => b.author === book.value.author && b.title !== book.value.title
+        );
 
-        // "You May Also Like" : recommandations aléatoires sur plusieurs genres
+        // "You May Also Like"
         const bookGenres = book.value.genre.split(",").map((g) => g.trim().toLowerCase());
         const filteredBooks = allBooks.filter(
           (b) =>
             b.title !== book.value.title &&
-            b.author !== book.value.author &&
             b.genre.split(",").some((g) => bookGenres.includes(g.trim().toLowerCase()))
         );
-
         recommendedBooks.value = getRandomBooks(filteredBooks, 7);
       } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
       }
     };
 
-    // Fonction pour sélectionner des livres aléatoires
     const getRandomBooks = (books, count) => {
       const shuffled = books.sort(() => 0.5 - Math.random());
       return shuffled.slice(0, count);
@@ -149,11 +161,13 @@ export default {
 
     const formatTitle = (title) => title.toLowerCase().replace(/\s+/g, "-");
 
-    // Surveiller les changements de titre dans l'URL
     watch(() => props.title, fetchBookDetails);
 
-    // Appel initial
-    onMounted(fetchBookDetails);
+    onMounted(() => {
+      fetchBookDetails();
+      updateMaxVisible();
+      window.addEventListener("resize", updateMaxVisible);
+    });
 
     return {
       book,
@@ -169,10 +183,13 @@ export default {
 </script>
 
 
-
-
 <style scoped>
-/* Main Container */
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Empêche l'apparition des curseurs horizontaux */
+}
+
 .book-details-container {
   display: flex;
   align-items: flex-start;
@@ -241,22 +258,18 @@ export default {
 }
 
 .book-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  display: flex; /* Utilise flex pour le grid horizontal */
   gap: 20px;
-  margin-top: 20px;
-  overflow: hidden;
-  padding : 0 40px;
+  padding: 0 20px;
+  justify-content: center; /* Centre les éléments horizontalement */
+  overflow: hidden; /* Cache les éléments qui dépassent */
 }
 
 .book-card {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  height: 340px;
-  transition: transform 0.2s;
-  cursor: pointer;
+  flex: 0 0 auto; /* Empêche l'étirement et conserve la taille */
+  width: 170px; /* Taille fixe pour chaque carte */
+  height: auto;
+  text-align: center;
 }
 
 .book-card:hover {
@@ -270,7 +283,8 @@ export default {
 
 .book-card img {
   width: 100%;
-  height: auto;
+  height: 250px;
+  object-fit: cover;
   border-radius: 4px;
 }
 
@@ -294,8 +308,11 @@ export default {
 }
 
 .carousel-container {
-  position: relative;
+  position: relative; /* Position relative pour que les flèches soient ancrées à ce conteneur */
+  overflow: hidden; /* Évite tout dépassement */
+  padding: 0 50px; /* Ajuste l'espace pour centrer les flèches */
 }
+
 
 .nav-button {
   position: absolute;
@@ -318,11 +335,11 @@ export default {
 }
 
 .nav-button.left {
-  left: -20px; /* Déplace la flèche gauche à l'extérieur */
+  left: 20px; /* Position relative à la gauche du conteneur */
 }
 
 .nav-button.right {
-  right: -20px; /* Déplace la flèche droite à l'extérieur */
+  right: 20px; /* Position relative à la droite du conteneur */
 }
 
 .nav-button:hover {
@@ -330,4 +347,5 @@ export default {
   color: white;
   transform: translateY(-50%) scale(1.1);
 }
+
 </style>

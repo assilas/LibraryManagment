@@ -143,7 +143,7 @@ export default {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 10px;
-  height: 340px;
+  height: 330px;
   transition: transform 0.2s;
   cursor: pointer;       /* Curseur en forme de main */
 }
@@ -159,8 +159,9 @@ export default {
 
 
 .book-card img {
-  width: 100%;
-  height: auto;
+  width: 150px;
+  height: 235px;
+  object-fit: cover;
   border-radius: 4px;
 }
 

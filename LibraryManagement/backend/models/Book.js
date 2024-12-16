@@ -21,7 +21,7 @@ const Book = sequelize.define('Book', {
         allowNull: false,
     },
     cover: { 
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
         defaultValue: 'https://via.placeholder.com/150x220?text=Pas+de+couverture',
     },

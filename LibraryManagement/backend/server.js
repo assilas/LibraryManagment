@@ -21,7 +21,7 @@ app.use(express.json());
     console.log('Connexion à la base de données réussie.');
 
     // Synchronisation des modèles avec la base de données
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ force: false });
     console.log('Les modèles sont synchronisés avec la base de données.');
 
   } catch (error) {
