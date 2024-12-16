@@ -1,85 +1,102 @@
 <template>
-    <div class="membership-management">
-      <h1>📚 Membership Management</h1>
-  
-      <!-- Search Bar -->
-      <div class="search-bar">
-        <input
-          v-model="searchQuery"
-          placeholder="Search by member name or email"
-          class="search-input"
-        />
-      </div>
-  
-      <!-- Members Table -->
-      <table class="members-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Borrowed Books</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="member in filteredMembers" :key="member.email">
-            <td>{{ member.name }}</td>
-            <td>{{ member.email }}</td>
-            <td>{{ member.borrowedBooks }}</td>
-            <td>
-              <button @click="viewActivity(member)">View Activity</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-  
-      <!-- Activity Section -->
-      <div v-if="selectedMember" class="activity-section">
-        <h2>Activity for {{ selectedMember.name }}</h2>
-        <p><strong>Borrowed Books:</strong> {{ selectedMember.borrowedBooks }}</p>
-        <p><strong>Books Title:</strong> {{ }}</p>
-      </div>
+  <div class="membership-management">
+    <h1>📚 Membership Management</h1>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input
+        v-model="searchQuery"
+        placeholder="Search by member name or email"
+        class="search-input"
+      />
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        searchQuery: "",
-        selectedMember: null,
-        members: [
-          {
-            name: "Alice Smith",
-            email: "alice@gmail.com",
-            borrowedBooks: 3,
-          },
-          {
-            name: "Bob Johnson",
-            email: "bob@gmail.com",
-            borrowedBooks: 2,
-          },
-        ],
-      };
+
+    <!-- Members Table -->
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Borrowed Books</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="member in filteredMembers" :key="member.email">
+          <td>{{ member.username }}</td>
+          <td>{{ member.email }}</td>
+          <td>{{ member.borrowedBooks }}</td>
+          <td>
+            <button @click="viewActivity(member)">View Activity</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Activity Section -->
+    <div v-if="selectedMember" class="activity-section">
+      <h2>Activity for {{ selectedMember.username }}</h2>
+      <p><strong>Borrowed Books:</strong> {{ selectedMember.borrowedBooks }}</p>
+      <p><strong>Books Titles:</strong></p>
+      <ul>
+        <li v-for="book in selectedMember.borrowedBooksList" :key="book.id">{{ book.title }}</li>
+      </ul>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      searchQuery: "",
+      selectedMember: null,
+      members: [], // Initialement vide, on va la remplir avec les données de l'API
+    };
+  },
+  computed: {
+    filteredMembers() {
+      return this.members.filter((member) =>
+        [member.username, member.email]
+          .join(" ")
+          .toLowerCase()
+          .includes(this.searchQuery.toLowerCase())
+      );
     },
-    computed: {
-      filteredMembers() {
-        return this.members.filter((member) =>
-          [member.name, member.email]
-            .join(" ")
-            .toLowerCase()
-            .includes(this.searchQuery.toLowerCase())
-        );
-      },
+  },
+  created() {
+    this.loadMembers();
+  },
+  methods: {
+    // Fonction pour récupérer les membres depuis l'API
+    async loadMembers() {
+      try {
+        const response = await axios.get('http://localhost:3001/users/members'); // Modifie l'URL selon ton backend
+        this.members = response.data; // Supposons que l'API retourne un tableau de membres
+      } catch (error) {
+        console.error("Erreur lors de la récupération des membres :", error);
+        alert("Failed to load members data.");
+      }
     },
-    methods: {
-      viewActivity(member) {
-        this.selectedMember = member;
-      },
+
+    // Fonction pour afficher les détails d'un membre
+    async viewActivity(member) {
+      this.selectedMember = member;
+      try {
+        // Supposons que tu as une API pour obtenir les livres empruntés d'un membre
+        const response = await axios.get(`http://localhost:3001/members/${member.email}/borrowedBooks`);
+        this.selectedMember.borrowedBooksList = response.data; // Ajoute la liste des livres empruntés
+      } catch (error) {
+        console.error("Erreur lors de la récupération des livres empruntés :", error);
+        alert("Failed to load borrowed books data.");
+      }
     },
-  };
-  </script>
-  
+  },
+};
+</script>
+
   <style scoped>
   .membership-management {
     display: flex;

@@ -128,4 +128,25 @@ router.get('/profile', async (req, res) => {
   }
 });
 
+
+router.get('/members', async (req, res) => {
+    try {
+      const members = await User.findAll();
+      const membersWithBorrowedBooks = members.map(member => ({
+        id: member.id,
+        name: member.username,
+        email: member.email,
+        role: member.role,
+        borrowedBooks: member.borrowedBooks, // Champ virtuel
+      }));
+      console.log('Membres récupérés:', membersWithBorrowedBooks);
+      res.json(membersWithBorrowedBooks);
+    } catch (error) {
+      console.error('Error fetching members:', error.message); // Log l'erreur complète
+      console.error('Stack trace:', error.stack);
+      res.status(500).json({ error: 'Failed to load members', details: error.message });
+    }
+  });
+  
+
 export default router;

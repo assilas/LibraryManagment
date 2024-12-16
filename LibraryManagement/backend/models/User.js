@@ -51,6 +51,10 @@ const User = sequelize.define('User', {
             },
         },
     },
+    borrowedBooks: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0, // Exemple pour le nombre de livres empruntés
+      },
 });
 
 export default User;
