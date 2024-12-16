@@ -9,32 +9,35 @@ const router = express.Router();
 router.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
 
+  // Validation manuelle de la longueur du mot de passe
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must have at least 6 characters.' });
+  }
+
   try {
-    console.log('Creating user with:', { username, email, password });
+    console.log('Creating user with:', { username, email });
 
-    // Vérifie si un utilisateur existe déjà avec cet email
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already exists. Please log in.' });
-    }
-
+    // Hashage du mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Création de l'utilisateur
     const newUser = await User.create({
       username,
       email,
-      password: hashedPassword,
+      password: hashedPassword, // Mot de passe déjà validé
       role: 'member',
     });
 
-    res.status(201).json({ message: 'User created successfully!', user: { id: newUser.id, email: newUser.email } });
+    console.log('User created successfully:', newUser);
+    res.status(201).json({
+      message: 'User created successfully!',
+      user: { id: newUser.id, email: newUser.email },
+    });
   } catch (error) {
-    console.error('Error during user creation:', error.message);
+    console.error('Error during user creation:', error.errors || error.message);
     res.status(500).json({ error: 'Failed to create user. Please try again.' });
   }
 });
-
-  
 
 // Login user
 router.post('/login', async (req, res) => {
