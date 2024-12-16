@@ -3,6 +3,7 @@ import Home from '@/components/Home.vue';
 import Catalog from '@/components/Catalogue.vue';
 import BookDetails from '../components/BookDetails.vue';
 import Cart from "@/components/Cart.vue";
+import UserInfo from '@/components/UserInfo.vue';
 import Auth from '@/components/Auth.vue';
 import MyAccount from '@/components/MyAccount.vue';
 import BorrowingRecordsView from '@/components/BorrowingRecords.vue';
@@ -13,7 +14,8 @@ const routes = [
     { path: '/', component: Home },
     { path: '/Catalog', component: Catalog },
     { path: '/book/:title', component: BookDetails, name: 'book-details', props: true },
-    { path: "/cart", name: "Cart", component: Cart },
+    { path: '/Cart', component: Cart },
+    { path: '/VerifyInfo', component: UserInfo},
     { path: '/Authentification', component: Auth },
     { path: '/MyAccount', component: MyAccount },
     { path: '/BorrowingRecords', component: BorrowingRecordsView },

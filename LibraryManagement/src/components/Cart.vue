@@ -67,6 +67,7 @@
         this.cart = storedCart ? JSON.parse(storedCart) : [];
         this.emitCartUpdated(); // Émet un événement pour mettre à jour la nav
       },
+
       // Supprime un livre spécifique du panier
       removeFromCart(index) {
         this.cart.splice(index, 1);
@@ -74,41 +75,63 @@
         alert("Book removed from cart.");
         this.emitCartUpdated(); // Émet un événement pour mettre à jour la nav
       },
-      // Confirme l'emprunt des livres sélectionnés
-      confirmBorrow() {
-        if (this.selectedBooks.length === 0) {
-          alert("Please select at least one book to borrow.");
-          return;
-        }
-  
-        // Affiche une alerte avec la liste des livres sélectionnés
-        const bookTitles = this.selectedBooks.map((book) => book.title).join(", ");
-        alert(`You have borrowed the following books: ${bookTitles}`);
-  
-        // Retire les livres empruntés du panier
-        this.cart = this.cart.filter((book) => !this.selectedBooks.includes(book));
-        localStorage.setItem("shoppingCart", JSON.stringify(this.cart));
-        this.selectedBooks = []; // Réinitialise les livres sélectionnés
-        this.emitCartUpdated(); // Émet un événement pour mettre à jour la nav
-      },
+
       // Formatte le titre pour générer un slug
       formatTitle(title) {
         return title.toLowerCase().replace(/\s+/g, "-");
       },
+
+      // Confirme l'emprunt des livres sélectionnés
+      confirmBorrow() {
+        if (this.selectedBooks.length === 0) {
+            alert("Please select at least one book to borrow.");
+            return;
+        }
+
+        // Vérifie si l'utilisateur est connecté
+        const token = localStorage.getItem("token");
+        if (!token) {
+            localStorage.setItem(
+            "selectedBooksForBorrow",
+            JSON.stringify(this.selectedBooks)
+            );
+            alert("You need to log in to borrow books.");
+            this.$router.push("/Authentification");
+            return;
+        }
+
+        // Si l'utilisateur est connecté, redirige vers la page de vérification
+        localStorage.setItem(
+            "selectedBooksForBorrow",
+            JSON.stringify(this.selectedBooks)
+        );
+        this.$router.push("/VerifyInfo");
+        },
+
+      
       // Émet un événement global pour mettre à jour la nav
       emitCartUpdated() {
         const event = new Event("cart-updated");
         window.dispatchEvent(event);
       },
     },
+    
     mounted() {
       // Charge les livres au montage
       this.loadCart();
+  
+      // Si des livres ont été sélectionnés pour emprunt avant la connexion, les restaurer
+      const selectedBooksForBorrow = JSON.parse(
+        localStorage.getItem("selectedBooksForBorrow")
+      );
+      if (selectedBooksForBorrow) {
+        this.selectedBooks = selectedBooksForBorrow;
+        localStorage.removeItem("selectedBooksForBorrow"); // Supprime après restauration
+      }
     },
   };
   </script>
-  
-  
+
   <style scoped>
   .cart-container {
     max-width: 800px;

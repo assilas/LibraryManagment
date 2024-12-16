@@ -31,6 +31,26 @@ const User = sequelize.define('User', {
         allowNull: false,
         defaultValue: 'member',
     },
+    address: {
+        type: DataTypes.STRING,
+        allowNull: true, // Peut être ajouté plus tard
+        validate: {
+            len: {
+                args: [5, 255],
+                msg: 'Address must be between 5 and 255 characters.',
+            },
+        },
+    },
+    phoneNumber: {
+        type: DataTypes.STRING,
+        allowNull: true, // Peut être ajouté plus tard
+        validate: {
+            is: {
+                args: /^[0-9]{10,15}$/, // Regex pour les numéros de téléphone
+                msg: 'Phone number must be between 10 and 15 digits.',
+            },
+        },
+    },
 });
 
 export default User;
