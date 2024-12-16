@@ -9,6 +9,9 @@
       <p class="book-author"><strong>Author:</strong> {{ book.author }}</p>
       <p class="book-genre"><strong>Genre:</strong> {{ book.genre }}</p>
       <p class="book-summary"><strong>Summary:</strong> {{ book.summary }}</p>
+      <div class="add-to-cart">
+        <button @click="addToCart(book)">Add to Cart</button>
+      </div>
     </div>
   </div>
 
@@ -112,6 +115,7 @@ export default {
     const currentIndexByAuthor = ref(0);
     const currentIndexRecommended = ref(0);
     const maxVisible = ref(4); // Nombre d'éléments visibles dynamiquement
+    const cartKey = "shoppingCart"; // Clé pour stocker les données du panier
 
     // Fonction pour ajuster dynamiquement maxVisible
     const updateMaxVisible = () => {
@@ -122,10 +126,6 @@ export default {
       // Calculer le nombre maximum de livres visibles en fonction de la largeur du conteneur
       maxVisible.value = Math.max(Math.floor((containerWidth - arrowSpace) / bookCardWidth), 1);
     };
-
-
-
-
 
     // Récupérer les détails du livre et suggestions
     const fetchBookDetails = async () => {
@@ -159,6 +159,25 @@ export default {
       return shuffled.slice(0, count);
     };
 
+    const addToCart = (selectedBook) => {
+      // Récupère le panier actuel
+      const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+      const existingBook = cart.find((item) => item.title === selectedBook.title);
+
+      if (existingBook) {
+        alert("This book is already in your cart!");
+      } else {
+        // Ajoute le livre au panier
+        cart.push(selectedBook);
+        localStorage.setItem(cartKey, JSON.stringify(cart));
+        alert(`${selectedBook.title} has been added to your cart!`);
+
+        // Émet un événement pour synchroniser avec le compteur du panier
+        const event = new Event("cart-updated");
+        window.dispatchEvent(event);
+      }
+    };
+    
     const formatTitle = (title) => title.toLowerCase().replace(/\s+/g, "-");
 
     watch(() => props.title, fetchBookDetails);
@@ -167,6 +186,12 @@ export default {
       fetchBookDetails();
       updateMaxVisible();
       window.addEventListener("resize", updateMaxVisible);
+      window.addEventListener("resize", () => {
+        const containerWidth = document.querySelector(".carousel-container")?.offsetWidth || window.innerWidth;
+        const bookCardWidth = 200;
+        const arrowSpace = 80;
+        maxVisible.value = Math.max(Math.floor((containerWidth - arrowSpace) / bookCardWidth), 1);
+      });
     });
 
     return {
@@ -177,6 +202,7 @@ export default {
       currentIndexRecommended,
       maxVisible,
       formatTitle,
+      addToCart
     };
   },
 };
@@ -233,7 +259,8 @@ body, html {
   color: white;
   background-color: rgba(193, 118, 128, 0.9);
   border: 1px solid rgb(193, 118, 128);
-  padding: 0.8rem 1.5rem;
+  padding: 0.5rem 1rem;
+  margin-top: 12px;
   border-radius: 12px;
   cursor: pointer;
   transition: 0.3s ease;

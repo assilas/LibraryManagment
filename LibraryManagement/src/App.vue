@@ -11,6 +11,11 @@
 
       <!-- Lien pour les utilisateurs non connectés -->
       <router-link v-else to="/Authentification">Authentification</router-link>
+
+      <!-- AJOUT : Icône Panier avec compteur -->
+      <router-link to="/cart" class="cart-link">
+        🛒 <span class="cart-count">{{ cartCount }}</span>
+      </router-link>
     </nav>
     <router-view
       :isLoggedIn="isLoggedIn"
@@ -27,6 +32,7 @@ export default {
     return {
       isLoggedIn: !!localStorage.getItem("token"), // Vérifie si un token existe
       userRole: localStorage.getItem("userRole") || null, // Récupère le rôle depuis localStorage
+      cartCount: 0, // Compteur pour le panier
     };
   },
   methods: {
@@ -48,6 +54,11 @@ export default {
       this.isLoggedIn = isLoggedIn;
       this.userRole = userRole;
     },
+    updateCartCount() {
+      // Récupère les livres dans le panier depuis localStorage
+      const cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
+      this.cartCount = cart.length;
+    },
   },
   mounted() {
     // Synchronise avec le localStorage au montage
@@ -55,6 +66,14 @@ export default {
       isLoggedIn: !!localStorage.getItem("token"),
       userRole: localStorage.getItem("userRole") || null,
     });
+    this.updateCartCount(); // Met à jour le compteur du panier
+
+    // Écoute l'événement "cart-updated" pour mettre à jour dynamiquement
+    window.addEventListener("cart-updated", this.updateCartCount);
+  },
+  beforeUnmount() {
+    // Retire l'écouteur d'événement
+    window.removeEventListener("cart-updated", this.updateCartCount);
   },
 };
 </script>
@@ -81,5 +100,23 @@ nav a {
 
 nav a:hover {
   color: rgba(198, 78, 94);
+}
+
+/* AJOUT : Style pour l'icône Panier */
+.cart-link {
+  position: relative;
+  margin-left: 25px;
+}
+
+.cart-count {
+  position: absolute;
+  top: -10px;
+  right: -15px;
+  background-color: rgba(255, 0, 0, 0.584);
+  color: white;
+  border-radius: 50%;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: bold;
 }
 </style>
