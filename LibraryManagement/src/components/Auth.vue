@@ -144,31 +144,31 @@
         };
       },
       async handleSignUp() {
-        const { name, email, password } = this.formData;
+  const { name, email, password } = this.formData;
 
-        try {
-          const response = await fetch('http://localhost:3001/users/signup', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username: name, email, password }),
-          });
+  try {
+    const response = await fetch('http://localhost:3001/users/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: name, email, password }),
+    });
 
-          const result = await response.json();
+    const result = await response.json();
+    console.log('Server Response:', result); // Log de la réponse pour déboguer
 
-          if (response.ok) {
-            alert('Sign-up successful! Please log in.');
-            this.isSignUp = false;
-            this.resetForm();
-          } else {
-            alert(result.error || 'Failed to sign up.');
-          }
-        } catch (error) {
-          console.error('Error during sign-up:', error);
-          alert('An error occurred during sign-up. Please try again.');
-        }
-      },
+    if (response.ok) {
+      alert('Sign-up successful! Please log in.');
+      this.isSignUp = false;
+      this.resetForm();
+    } else {
+      alert(result.error || 'Failed to sign up.');
+    }
+  } catch (error) {
+    console.error('Error during sign-up:', error);
+    alert('An error occurred during sign-up. Please try again.');
+  }
+},
+
       async handleLogin() {
   const { email, password } = this.formData;
 
