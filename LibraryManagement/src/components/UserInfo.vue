@@ -3,11 +3,12 @@
       <h1>Verify and Update Your Information</h1>
       <form @submit.prevent="finalizeBorrow">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="username">Full Name</label>
           <input
             type="text"
             id="username"
             v-model="user.username"
+            placeholder="Enter your full name"
             required
           />
         </div>
@@ -17,6 +18,7 @@
             type="email"
             id="email"
             v-model="user.email"
+            placeholder="Enter your email"
             required
           />
         </div>
@@ -38,7 +40,7 @@
             v-model="user.phoneNumber"
             maxlength="10"
             pattern="[0-9]{10}"
-            placeholder="Enter 10-digit phone number"
+            placeholder="Enter your phone number"
             required
           />
         </div>
@@ -160,4 +162,3 @@
     background-color: #4aa570;
   }
   </style>
-  
