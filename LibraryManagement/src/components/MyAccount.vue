@@ -63,45 +63,44 @@ export default {
     };
   },
   async created() {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('userRole');
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('userRole');
 
-    console.log('Token from localStorage:', token);
+  console.log('Role:', role);
+  console.log('Token:', token);
 
-    // Vérifie si le token existe
-    if (!token) {
-      alert('No token found. Please log in.');
-      this.$router.push('/auth');
-      return;
-    }
+  if (!token) {
+    alert('No token found. Please log in.');
+    this.$router.push('/auth');
+    return;
+  }
 
-    try {
-      let headers;
+  try {
+    const headers =
+      role === 'librarian'
+        ? { Authorization: 'librarian_token' }
+        : { Authorization: `Bearer ${token}` };
 
-      // Gestion spécifique pour le libraire (token fictif)
-      if (role === 'librarian') {
-        headers = { Authorization: 'librarian_token' };
-      } else {
-        headers = { Authorization: `Bearer ${token}` };
-      }
+    console.log('Headers sent to server:', headers);
 
-      const res = await axios.get('http://localhost:3001/users/profile', {
-        headers,
-      });
+    const res = await axios.get('http://localhost:3001/users/profile', {
+      headers,
+    });
 
-      console.log('API Response:', res.data);
+    console.log('API Response:', res.data);
 
-      // Mise à jour des données utilisateur
-      this.accountName = res.data.username;
-      this.userRole = res.data.role;
-      this.profileImage = localStorage.getItem('profileImage') || this.defaultImage;
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      alert('Session expired or invalid. Please log in again.');
-      localStorage.clear();
-      this.$router.push('/auth');
-    }
-  },
+    this.accountName = res.data.username;
+    this.userRole = res.data.role;
+    this.profileImage = localStorage.getItem('profileImage') || this.defaultImage;
+  } catch (err) {
+    console.error('Error fetching profile:', err.response ? err.response.data : err.message);
+    alert('Session expired or invalid. Please log in again.');
+    localStorage.clear();
+    this.$router.push('/auth');
+  }
+},
+
+
   methods: {
     navigateTo(page) {
       this.$router.push(page);

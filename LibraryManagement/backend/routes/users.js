@@ -89,29 +89,41 @@ router.post('/login', async (req, res) => {
 router.get('/profile', async (req, res) => {
   const authHeader = req.headers.authorization;
 
+  console.log('Authorization Header Received:', authHeader);
+
   try {
+    // Vérifie si c'est un libraire avec le token spécial
     if (authHeader === 'librarian_token') {
+      console.log('Librarian token detected. Returning librarian profile.');
       return res.status(200).json({
         username: 'Librarian Admin',
         role: 'librarian',
       });
     }
 
+    // Vérifie les utilisateurs normaux avec token JWT
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Authorization header invalid or missing.');
       return res.status(401).json({ msg: 'Authorization header missing or malformed' });
     }
 
     const token = authHeader.split(' ')[1];
+    console.log('Decoded Token:', token);
+
     const decoded = jwt.verify(token, 'your_jwt_secret');
     const user = await User.findByPk(decoded.id);
 
     if (!user) {
+      console.log('User not found in database.');
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    res.json({ username: user.username, role: user.role });
+    res.status(200).json({
+      username: user.username,
+      role: user.role,
+    });
   } catch (err) {
-    console.error('Token verification failed:', err);
+    console.error('Error during token verification:', err.message);
     res.status(401).json({ msg: 'Invalid or expired token' });
   }
 });
