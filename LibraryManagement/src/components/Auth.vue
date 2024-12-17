@@ -213,7 +213,6 @@
         }
       },
 
-
       handleLogout() {
         // Déconnexion
         this.$root.isLoggedIn = false;
