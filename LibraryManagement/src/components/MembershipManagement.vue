@@ -37,22 +37,31 @@
     <!-- Modal Window -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal-window">
-        <!-- Titre -->
         <h2 class="modal-title">{{ isEditing ? "Modify Info" : "Member Details" }}</h2>
 
         <!-- View Activity -->
         <div v-if="!isEditing">
           <p><strong>Name:</strong> {{ selectedMember.username }}</p>
           <p><strong>Email:</strong> {{ selectedMember.email }}</p>
-          <button @click="toggleEditMode" class="action-btn modify-btn">Modify Info</button>
+          <p><strong>Address:</strong> {{ selectedMember.address || "N/A" }}</p>
+          <p><strong>Phone Number:</strong> {{ selectedMember.phoneNumber || "N/A" }}</p>
+          <p><strong>Borrowed Books:</strong> {{ selectedMember.borrowedBooks }}</p>
+          <div class="button-group">
+            <button @click="toggleEditMode" class="action-btn modify-btn">Modify Info</button>
+            <button @click="closeModal" class="action-btn close-btn">Close</button>
+          </div>
         </div>
 
-        <!-- Modify Info Form -->
+        <!-- Modify Info -->
         <div v-else>
           <input v-model="editForm.username" placeholder="Enter new name" class="input-field" />
           <input v-model="editForm.email" placeholder="Enter new email" class="input-field" />
-
-          <!-- Buttons Aligned -->
+          <input v-model="editForm.address" placeholder="Enter new address" class="input-field" />
+          <input
+            v-model="editForm.phoneNumber"
+            placeholder="Enter phone number"
+            class="input-field"
+          />
           <div class="button-group">
             <button @click="updateMemberInfo" class="action-btn save-btn">Save</button>
             <button @click="toggleEditMode" class="action-btn back-btn">Back</button>
@@ -78,6 +87,8 @@ export default {
       editForm: {
         username: "",
         email: "",
+        address: "",
+        phoneNumber: "",
       },
     };
   },
@@ -104,8 +115,13 @@ export default {
       }
     },
     openModal(member) {
-      this.selectedMember = member;
-      this.editForm = { username: member.username, email: member.email };
+      this.selectedMember = { ...member }; // Copie les données pour éviter les conflits
+      this.editForm = {
+        username: member.username,
+        email: member.email,
+        address: member.address || "",
+        phoneNumber: member.phoneNumber || "",
+      };
       this.isEditing = false;
       this.showModal = true;
     },
@@ -120,10 +136,17 @@ export default {
       try {
         await axios.put(
           `http://localhost:3001/users/update/${this.selectedMember.id}`,
-          { username: this.editForm.username, email: this.editForm.email }
+          {
+            username: this.editForm.username,
+            email: this.editForm.email,
+            address: this.editForm.address,
+            phoneNumber: this.editForm.phoneNumber,
+          }
         );
         alert("Member information updated successfully!");
-        this.loadMembers();
+
+        // Recharger les membres après la mise à jour
+        await this.loadMembers();
         this.closeModal();
       } catch (error) {
         console.error("Error updating member info:", error);
@@ -178,25 +201,25 @@ h1 {
   width: 100%;
   max-width: 800px;
   border-collapse: collapse;
-  border: 1.5px solid #ac4e4e; /* Contour épais en rose foncé */
+  border: 1.5px solid #ac4e4e;
 }
 
 .members-table th {
-  background-color: #f8c0c0; /* Rose clair */
-  color: #ac4e4e; /* Rose foncé */
+  background-color: #f8c0c0;
+  color: #ac4e4e;
   font-size: 1.2rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Ombre douce */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
   padding: 15px;
 }
 
 .members-table td {
-  border: 1px solid #ac4e4e; /* Contour épais */
+  border: 1px solid #ac4e4e;
   padding: 15px;
   text-align: center;
 }
 
 .action-btn {
-  background-color: #f6a5a5; /* Rose clair */
+  background-color: #f6a5a5;
   color: white;
   padding: 10px 20px;
   margin-right: 10px;
@@ -207,7 +230,7 @@ h1 {
 }
 
 .action-btn:hover {
-  background-color: #e57373; /* Rose foncé */
+  background-color: #e57373;
 }
 
 .modal-overlay {
@@ -232,7 +255,7 @@ h1 {
 }
 
 .modal-title {
-  color: #d87e7e; /* Rose foncé */
+  color: #d87e7e;
   font-size: 1.8rem;
   margin-bottom: 20px;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
@@ -243,7 +266,7 @@ h1 {
   padding: 8px;
   margin-bottom: 15px;
   border: 1px solid #e4cfcf;
-  border-radius: 1px;
+  border-radius: 5px;
 }
 
 .button-group {
