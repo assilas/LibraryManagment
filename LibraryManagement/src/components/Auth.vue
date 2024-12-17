@@ -202,7 +202,7 @@
             if (result.user.role === 'librarian') {
               this.$router.push('/MyAccount'); // Page du librarian
             } else {
-              this.$router.push('/Dashboard'); // Page pour les membres
+              this.$router.push('/MyAccount'); // Page pour les membres
             }
           } else {
             alert(result.error || 'Login failed. Check your credentials.');
