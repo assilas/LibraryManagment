@@ -8,9 +8,11 @@ import User from './models/User.js';
 const app = express(); // Déclare app avant de l'utiliser
 
 app.use(cors({
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  }));  // Permet les requêtes provenant de n'importe quelle origine
+    origin: "http://localhost:5173", // URL de ton frontend
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  }));
+    // Permet les requêtes provenant de n'importe quelle origine
 
 const PORT = 3001;
 const HOST = 'http://localhost'; // Vous pouvez remplacer localhost par une IP si nécessaire
@@ -23,7 +25,7 @@ app.use(express.json());
     try {
       await sequelize.authenticate();
       console.log('Database connected.');
-      await sequelize.sync({ alter: true });
+      await sequelize.sync({ force: false });
       console.log('Models synchronized.');
     } catch (error) {
       console.error('Database connection failed:', error);
