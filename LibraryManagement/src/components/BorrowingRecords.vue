@@ -90,6 +90,13 @@ export default {
           { isAvailable: true }, // Change l'état du livre
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        
+        
+        await axios.put(
+          `http://localhost:3001/books/${book.id}`, 
+        
+        this.borrowedBooks = borrowedCount
+      );
 
         // Étape 2 : Mettre à jour la liste des livres empruntés côté utilisateur
         this.borrowedBooks = this.borrowedBooks.filter((b) => b.id !== book.id);

@@ -158,7 +158,33 @@ router.get('/members', async (req, res) => {
       res.status(500).json({ error: "Failed to fetch user email." });
     }
   });
+
+  router.get('/borrowing-history', async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
   
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized access. Token missing." });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, "your_jwt_secret");
+  
+      const userId = decoded.id;
+  
+      // Simule un modèle d'historique - Adapter si tu as une table dédiée
+      const borrowedBooks = await BorrowingHistory.findAll({
+        where: { userId },
+        attributes: ["title", "author", "borrowedDate", "returnedDate"],
+      });
+  
+      res.status(200).json(borrowedBooks);
+    } catch (error) {
+      console.error("Error fetching borrowing history:", error.message);
+      res.status(500).json({ error: "Failed to fetch borrowing history." });
+    }
+  });
+  
+
   router.put("/update", async (req, res) => {
     const { username, email, address, phoneNumber } = req.body;
     const token = req.headers.authorization?.split(" ")[1];

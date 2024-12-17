@@ -6,7 +6,7 @@ import Cart from "@/components/Cart.vue";
 import UserInfo from '@/components/UserInfo.vue';
 import Auth from '@/components/Auth.vue';
 import MyAccount from '@/components/MyAccount.vue';
-import BorrowingRecordsView from '@/components/BorrowingRecords.vue';
+import BorrowingRecords from '@/components/BorrowingRecords.vue';
 import ManageBooksReturn from '@/components/ManageBooksReturn.vue';
 import MembershipManagement from '@/components/MembershipManagement.vue';
 
@@ -18,7 +18,7 @@ const routes = [
     { path: '/VerifyInfo', component: UserInfo},
     { path: '/Authentification', component: Auth },
     { path: '/MyAccount', component: MyAccount },
-    { path: '/BorrowingRecords', component: BorrowingRecordsView },
+    { path: '/BorrowingRecords', component: BorrowingRecords },
     { path: '/ManageBooksReturn', component: ManageBooksReturn },
     { path: '/MembershipManagement', component: MembershipManagement },
 ];
