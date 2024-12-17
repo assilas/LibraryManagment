@@ -355,13 +355,21 @@ button:hover {
 }
 
 .save-btn {
-  background-color: #4caf50;
+  background-color: #4caf4fb1;
   color: white;
 }
 
+.save-btn:hover{
+  background-color: #317133cb;
+}
+
 .close-btn {
-  background-color: #f44336;
+  background-color: #f44336b6;
   color: white;
+}
+
+.close-btn:hover{
+  background-color: #b5352cb6;
 }
 
 .edit-btn {

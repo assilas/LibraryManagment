@@ -65,9 +65,28 @@ export default {
         return;
       }
 
-      // Étape 1 : Vérification de la limite des livres empruntables
-      const totalBooksToBorrow = this.user.borrowedBooks + selectedBooks.length;
+      // Étape : Mettre à jour les informations utilisateur
+      try {
+        await axios.put(
+          `http://localhost:3001/users/update/${this.user.id}`,
+          {
+            username: this.user.username,
+            email: this.user.email,
+            address: this.user.address,
+            phoneNumber: this.user.phoneNumber,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
+        console.log("User information updated successfully.");
+      } catch (error) {
+        console.error("Error updating user info:", error.message);
+        alert("Failed to update user information.");
+        return;
+      }
+
+      // Logique existante pour vérifier les limites d'emprunt
+      const totalBooksToBorrow = this.user.borrowedBooks + selectedBooks.length;
       if (totalBooksToBorrow > this.borrowLimit) {
         alert(`You cannot borrow more than ${this.borrowLimit} books in total. 
         You currently have ${this.user.borrowedBooks} books borrowed.`);
@@ -75,16 +94,14 @@ export default {
       }
 
       try {
-        console.log("Selected books:", selectedBooks);
-
-        // Mise à jour du nombre de livres empruntés côté serveur
+        // Mise à jour du nombre de livres empruntés
         await axios.put(
           "http://localhost:3001/users/finalize-borrow",
           { borrowedCount: selectedBooks.length },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Mise à jour de l'état de disponibilité des livres
+        // Mettre à jour la disponibilité des livres
         const updatedBooks = [];
         for (const book of selectedBooks) {
           await axios.put(
@@ -95,29 +112,21 @@ export default {
           updatedBooks.push(book.id);
         }
 
-        console.log("Books successfully marked as borrowed.");
-
-        // Mise à jour du localStorage (retrait des livres empruntés du panier)
+        // Mettre à jour le panier local
         let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
         cart = cart.filter((book) => !updatedBooks.includes(book.id));
         localStorage.setItem("shoppingCart", JSON.stringify(cart));
 
-        const event = new Event("cart-updated");
-        window.dispatchEvent(event);
-
-        console.log("Cart updated. Remaining books:", cart);
-
-        // Réinitialisation des livres sélectionnés
         localStorage.removeItem("selectedBooksForBorrow");
 
-        // Succès
         alert(`Borrow confirmed. You have borrowed ${selectedBooks.length} books.`);
         this.$router.push("/");
       } catch (error) {
-        console.error("Error during finalize borrow:", error.response?.data || error.message);
+        console.error("Error during finalize borrow:", error.message);
         alert("Failed to finalize borrow. Please try again.");
       }
     },
+
   },
   mounted() {
     this.fetchUserInfo();
