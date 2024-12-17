@@ -209,28 +209,34 @@ router.get("/members", async (req, res) => {
   
   
   // Mettre à jour le nombre de livres empruntés
-router.put('/update-borrowedBooks/:id', async (req, res) => {
-  const { id } = req.params; // Récupère l'ID de l'utilisateur dans les paramètres de la requête
-  const { borrowedBooks } = req.body; // Récupère la nouvelle valeur depuis le body
-
-  try {
-      // Rechercher l'utilisateur dans la base de données
+  router.put('/update-borrowedBooks/:id', async (req, res) => {
+    const { id } = req.params;
+    const { borrowedBooks } = req.body;
+  
+    try {
       const user = await User.findByPk(id);
-
+  
       if (!user) {
-          return res.status(404).json({ error: "User not found." });
+        return res.status(404).json({ error: "User not found." });
       }
-
-      // Mettre à jour le champ borrowedBooks
+  
       user.borrowedBooks = borrowedBooks;
       await user.save();
-
-      res.status(200).json({ message: "Borrowed books updated successfully.", user });
-  } catch (error) {
-      console.error("Error updating borrowedBooks:", error);
+  
+      console.log("Updated user borrowedBooks:", borrowedBooks);
+  
+      // Assure-toi de renvoyer un message clair avec succès
+      res.status(200).json({
+        message: "Borrowed books count updated successfully.",
+        borrowedBooks: user.borrowedBooks,
+      });
+    } catch (error) {
+      console.error("Error updating borrowedBooks:", error.message);
       res.status(500).json({ error: "Failed to update borrowedBooks." });
-  }
-});
+    }
+  });
+  
+  
 
   router.put("/finalize-borrow", async (req, res) => {
     const { borrowedCount } = req.body; // Nombre de livres empruntés
@@ -268,6 +274,39 @@ router.put('/update-borrowedBooks/:id', async (req, res) => {
       res.status(500).json({ error: "Failed to finalize borrow." });
     }
   });
+
+  router.put('/return-book', async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+  
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized access. Token missing." });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, "your_jwt_secret");
+      const user = await User.findByPk(decoded.id);
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found." });
+      }
+  
+      // Vérifie qu'il y a des livres empruntés avant de décrémenter
+      if (user.borrowedBooks > 0) {
+        user.borrowedBooks -= 1;
+        await user.save();
+  
+        console.log(`Borrowed books updated to ${user.borrowedBooks} for user ID ${decoded.id}`);
+        res.status(200).json({ message: "Book returned successfully.", borrowedBooks: user.borrowedBooks });
+      } else {
+        res.status(400).json({ error: "No borrowed books to return." });
+      }
+    } catch (error) {
+      console.error("Error during book return:", error.message);
+      res.status(500).json({ error: "Failed to process book return." });
+    }
+  });
+  
+  
   router.delete("/delete/:id", async (req, res) => {
     const { id } = req.params; // Récupération de l'ID de l'utilisateur à supprimer
   
