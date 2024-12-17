@@ -40,7 +40,8 @@
         </div>
       </router-link>
 
-      <!-- Affichage des livres empruntés (grisés) -->
+      <!--
+       Affichage des livres empruntés (grisés) -->
       <div 
         v-for="book in borrowedBooks" 
         :key="book.id" 
