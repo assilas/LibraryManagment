@@ -121,8 +121,6 @@ router.get('/profile', async (req, res) => {
   }
 });
 
-
-
 router.get('/members', async (req, res) => {
     try {
       const members = await User.findAll();
@@ -161,41 +159,36 @@ router.get('/members', async (req, res) => {
     }
   });
   
-
-
-
-
-  router.put("/update/:id", async (req, res) => {
-    const { id } = req.params;
-    const { username, email } = req.body; // Champs optionnels
+  router.put("/update", async (req, res) => {
+    const { username, email, address, phoneNumber } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+  
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized access. Token missing." });
+    }
   
     try {
-      const user = await User.findByPk(id);
+      const decoded = jwt.verify(token, "your_jwt_secret");
+      const user = await User.findByPk(decoded.id);
+  
       if (!user) {
-        console.error("User not found with ID:", id);
         return res.status(404).json({ error: "User not found." });
       }
   
-      // Mise à jour conditionnelle des informations utilisateur
-      if (username) {
-        user.username = username;
-      }
-  
-      if (email) {
-        user.email = email;
-      }
-  
-      // Enregistrer les changements
+      // Mise à jour des informations utilisateur
+      user.username = username || user.username;
+      user.email = email || user.email;
+      user.address = address || user.address;
+      user.phoneNumber = phoneNumber || user.phoneNumber;
       await user.save();
-      console.log("User updated successfully:", user);
   
-      res.status(200).json({ message: "User updated successfully.", user });
+      res.status(200).json({ message: "User updated successfully." });
     } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({ error: "Failed to update user." });
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "Failed to update user information." });
     }
   });
-
+  
   // Mettre à jour le nombre de livres empruntés
 router.put('/update-borrowedBooks/:id', async (req, res) => {
   const { id } = req.params; // Récupère l'ID de l'utilisateur dans les paramètres de la requête
@@ -224,22 +217,36 @@ router.put('/update-borrowedBooks/:id', async (req, res) => {
     const { borrowedCount } = req.body; // Nombre de livres empruntés
     const token = req.headers.authorization?.split(" ")[1];
   
-
-  // Supprimer un membre par ID
-router.delete('/delete/:id', async (req, res) => {
-    const { id } = req.params;
+    if (!token) {
+      console.error("Token missing");
+      return res.status(401).json({ error: "Unauthorized access. Token missing." });
+    }
   
     try {
-      const user = await User.findByPk(id);
+      const decoded = jwt.verify(token, "your_jwt_secret");
+      console.log("Decoded token:", decoded);
+  
+      const user = await User.findByPk(decoded.id);
       if (!user) {
-        return res.status(404).json({ error: 'User not found.' });
+        console.error("User not found with ID:", decoded.id);
+        return res.status(404).json({ error: "User not found." });
       }
   
-      await user.destroy(); // Supprime l'utilisateur de la base de données
-      res.status(200).json({ message: 'User deleted successfully.' });
+      console.log("Current borrowedBooks:", user.borrowedBooks);
+      console.log("Books to borrow:", borrowedCount);
+  
+      // Mise à jour du nombre de livres empruntés
+      user.borrowedBooks += borrowedCount;
+      await user.save();
+  
+      console.log("Updated borrowedBooks:", user.borrowedBooks);
+      res.status(200).json({
+        message: `Borrowed ${borrowedCount} books successfully.`,
+        borrowedBooks: user.borrowedBooks,
+      });
     } catch (error) {
-      console.error('Error deleting user:', error.message);
-      res.status(500).json({ error: 'Failed to delete user.' });
+      console.error("Error during finalize borrow:", error.message);
+      res.status(500).json({ error: "Failed to finalize borrow." });
     }
   });
   
