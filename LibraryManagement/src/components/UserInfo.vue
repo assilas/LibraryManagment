@@ -91,8 +91,10 @@ export default {
         cart = cart.filter((book) => !updatedBooks.includes(book.id));
         localStorage.setItem("shoppingCart", JSON.stringify(cart));
 
-        console.log("Cart updated. Remaining books:", cart);
+        const event = new Event("cart-updated");
+        window.dispatchEvent(event);
 
+        console.log("Cart updated. Remaining books:", cart);
         // Étape 4 : Réinitialiser les livres sélectionnés
         localStorage.removeItem("selectedBooksForBorrow");
 
