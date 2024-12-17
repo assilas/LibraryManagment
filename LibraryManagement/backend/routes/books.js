@@ -103,6 +103,57 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+router.put('/borrow/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const book = await Book.findByPk(id);
+
+        if (!book) {
+            return res.status(404).json({ error: 'Book not found.' });
+        }
+
+        if (!book.isAvailable) {
+            return res.status(400).json({ error: 'Book is already borrowed.' });
+        }
+
+        // Mettre à jour la disponibilité du livre
+        book.isAvailable = false;
+        await book.save();
+
+        res.json({ success: true, message: 'Book borrowed successfully.', book });
+    } catch (error) {
+        console.error('Error borrowing book:', error.message);
+        res.status(500).json({ error: 'Server error while borrowing the book.' });
+    }
+});
+
+router.put('/return/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const book = await Book.findByPk(id);
+
+        if (!book) {
+            return res.status(404).json({ error: 'Book not found.' });
+        }
+
+        if (book.isAvailable) {
+            return res.status(400).json({ error: 'Book is already available.' });
+        }
+
+        // Mettre à jour la disponibilité du livre
+        book.isAvailable = true;
+        await book.save();
+
+        res.json({ success: true, message: 'Book returned successfully.', book });
+    } catch (error) {
+        console.error('Error returning book:', error.message);
+        res.status(500).json({ error: 'Server error while returning the book.' });
+    }
+});
+
+
 // Supprimer un livre
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;

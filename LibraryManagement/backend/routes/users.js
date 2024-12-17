@@ -121,8 +121,6 @@ router.get('/profile', async (req, res) => {
   }
 });
 
-
-
 router.get('/members', async (req, res) => {
     try {
       const members = await User.findAll();

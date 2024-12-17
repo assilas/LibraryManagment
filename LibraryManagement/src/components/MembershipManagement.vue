@@ -155,5 +155,5 @@ export default {
   button:hover {
     background-color: #b36a6a;
   }
-  </style>
+</style>
   

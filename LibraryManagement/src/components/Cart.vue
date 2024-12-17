@@ -244,4 +244,3 @@
     display: inline-block;
   }
   </style>
-  

@@ -23,21 +23,36 @@
     </select>
 
     <div class="book-grid">
-      <!-- Filtrage des livres (recherche + genre) -->
+      <!-- Filtrage et affichage des livres disponibles -->
       <router-link 
-        v-for="book in filteredBooks" 
+        v-for="book in availableBooks" 
         :key="book.id" 
         :to="`/book/${formatTitle(book.title)}`" 
         class="book-card-link"
       >
         <div class="book-card">
-          <img :src="book.cover || 'https://via.placeholder.com/150x220?text=Pas+de+couverture'" :alt="`Couverture de ${book.title}`" />
+          <img :src="book.cover || 'https://via.placeholder.com/150x220?text=Pas+de+couverture'" 
+               :alt="`Couverture de ${book.title}`" />
           <div class="book-info">
-            <h2>{{ book.title || 'Titre non disponible' }}</h2>
-            <p>{{ book.author || 'Auteur inconnu' }}</p>
+            <h2>{{ book.title }}</h2>
+            <p>{{ book.author }}</p>
           </div>
         </div>
       </router-link>
+
+      <!-- Affichage des livres empruntés (grisés) -->
+      <div 
+        v-for="book in borrowedBooks" 
+        :key="book.id" 
+        class="book-card book-card-disabled"
+      >
+        <img :src="book.cover || 'https://via.placeholder.com/150x220?text=Pas+de+couverture'" 
+             :alt="`Couverture de ${book.title}`" />
+        <div class="book-info">
+          <h2>{{ book.title }}</h2>
+          <p>{{ book.author }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -52,8 +67,8 @@ export default {
   name: 'BookCatalog',
   setup() {
     const books = ref([]);
-    const searchQuery = ref('');     // Stocke la recherche utilisateur
-    const selectedGenre = ref('');   // Stocke le genre sélectionné
+    const searchQuery = ref('');
+    const selectedGenre = ref('');
 
     const fetchBooks = async () => {
       try {
@@ -66,16 +81,15 @@ export default {
 
     onMounted(fetchBooks);
 
-    // Extraire les genres uniques depuis la liste des livres
+    // Extraire les genres uniques
     const uniqueGenres = computed(() => {
-      // Crée un tableau de genres séparés par des virgules
       const genres = books.value.flatMap(book => 
         book.genre ? book.genre.split(',').map(genre => genre.trim()) : []
       );
-      return [...new Set(genres)]; // Élimine les doublons
+      return [...new Set(genres)];
     });
 
-    // Filtrer les livres en fonction de la recherche et du genre sélectionné
+    // Livres filtrés selon la recherche et le genre
     const filteredBooks = computed(() => {
       return books.value.filter((book) => {
         const lowerCaseQuery = searchQuery.value.toLowerCase();
@@ -85,10 +99,20 @@ export default {
         
         const matchesGenre = selectedGenre.value 
           ? book.genre.split(',').map(g => g.trim()).includes(selectedGenre.value) 
-          : true; // Si aucun genre sélectionné, tous les livres passent
+          : true;
 
         return matchesSearch && matchesGenre;
       });
+    });
+
+    // Livres disponibles
+    const availableBooks = computed(() => {
+      return filteredBooks.value.filter(book => book.isAvailable);
+    });
+
+    // Livres empruntés (non disponibles)
+    const borrowedBooks = computed(() => {
+      return filteredBooks.value.filter(book => !book.isAvailable);
     });
 
     const formatTitle = (title) => {
@@ -100,7 +124,8 @@ export default {
       searchQuery, 
       selectedGenre, 
       uniqueGenres, 
-      filteredBooks, 
+      availableBooks, 
+      borrowedBooks, 
       formatTitle 
     };
   },
@@ -108,7 +133,6 @@ export default {
 </script>
 
 <style scoped>
-/* Style comme tu l'avais prévu */
 .catalog {
   padding: 20px;
   text-align: center;
@@ -145,18 +169,23 @@ export default {
   padding: 10px;
   height: 330px;
   transition: transform 0.2s;
-  cursor: pointer;       /* Curseur en forme de main */
 }
 
 .book-card:hover {
   transform: scale(1.05);
 }
 
-.book-card-link {
-  text-decoration: none; /* Enlève le soulignement */
-  color: inherit;        /* Utilise la couleur par défaut */
+.book-card-disabled {
+  background-color: #e0e0e0; /* Grisé */
+  opacity: 0.6; /* Réduit l'opacité */
+  pointer-events: none; /* Désactive le clic */
+  cursor: not-allowed;
 }
 
+.book-card-link {
+  text-decoration: none;
+  color: inherit;
+}
 
 .book-card img {
   width: 150px;

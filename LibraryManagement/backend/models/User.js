@@ -5,7 +5,6 @@ const User = sequelize.define('User', {
     username: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true, // Contrainte unique
         validate: {
             notEmpty: { msg: 'Username cannot be empty.' },
         },

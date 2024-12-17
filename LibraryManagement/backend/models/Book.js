@@ -25,6 +25,10 @@ const Book = sequelize.define('Book', {
         allowNull: true,
         defaultValue: 'https://via.placeholder.com/150x220?text=Pas+de+couverture',
     },
+    isAvailable:  {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+    },
 }, {
     timestamps: true,
     createdAt: 'createdAt',

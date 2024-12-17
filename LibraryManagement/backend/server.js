@@ -23,7 +23,7 @@ app.use(express.json());
     try {
       await sequelize.authenticate();
       console.log('Database connected.');
-      await sequelize.sync({ force: false });
+      await sequelize.sync({ alter: true });
       console.log('Models synchronized.');
     } catch (error) {
       console.error('Database connection failed:', error);

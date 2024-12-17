@@ -118,7 +118,6 @@
   };
   </script>
   
-
 <style scoped>
     .user-info-container {
     max-width: 600px;
