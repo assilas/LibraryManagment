@@ -1,122 +1,116 @@
 <template>
-    <div class="user-info-container">
-      <h1>Verify Your Information</h1>
-      <form @submit.prevent="finalizeBorrow">
-        <div class="form-group">
-          <label for="username">Full Name</label>
-          <input
-            type="text"
-            id="username"
-            v-model="user.username"
-            placeholder="Enter your full name"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            v-model="user.email"
-            placeholder="Enter your email"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="address">Address</label>
-          <input
-            type="text"
-            id="address"
-            v-model="user.address"
-            placeholder="Enter your address"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="phoneNumber">Phone Number</label>
-          <input
-            type="text"
-            id="phoneNumber"
-            v-model="user.phoneNumber"
-            maxlength="10"
-            pattern="[0-9]{10}"
-            placeholder="Enter your phone number"
-            required
-          />
-        </div>
-        <button type="submit">Finalize Borrow</button>
-      </form>
-    </div>
-  </template>
-  
-  <script>
-  import axios from "axios";
-  
-  export default {
-    data() {
-      return {
-        user: {
-          username: "",
-          email: "",
-          address: "",
-          phoneNumber: "",
-        },
-        borrowedBooksCount: 0, // Pour le nombre de livres empruntés
-      };
-    },
-    methods: {
-      async fetchUserInfo() {
-        try {
-          const token = localStorage.getItem("token");
-          const response = await axios.get("http://localhost:3001/users/profile", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          this.user = response.data; // Charge les infos utilisateur
-  
-          // Compte les livres sélectionnés dans le panier
-          const cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
-          this.borrowedBooksCount = cart.length;
-        } catch (error) {
-          console.error("Error fetching user info:", error);
-          alert("Session expired. Please log in again.");
-          this.$router.push("/Authentification");
-        }
+  <div class="user-info-container">
+    <h1>Verify Your Information</h1>
+    <form @submit.prevent="finalizeBorrow">
+      <div class="form-group">
+        <label for="username">Full Name</label>
+        <input type="text" id="username" v-model="user.username" placeholder="Enter your full name" required />
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" v-model="user.email" placeholder="Enter your email" required />
+      </div>
+      <div class="form-group">
+        <label for="address">Address</label>
+        <input type="text" id="address" v-model="user.address" placeholder="Enter your address" required />
+      </div>
+      <div class="form-group">
+        <label for="phoneNumber">Phone Number</label>
+        <input type="text" id="phoneNumber" v-model="user.phoneNumber" maxlength="10" pattern="[0-9]{10}" placeholder="Enter your phone number" required />
+      </div>
+      <button type="submit">Finalize Borrow</button>
+    </form>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      user: {
+        username: "",
+        email: "",
+        address: "",
+        phoneNumber: "",
       },
-      async finalizeBorrow() {
+    };
+  },
+  methods: {
+    // Récupération des informations utilisateur
+    async fetchUserInfo() {
+      try {
         const token = localStorage.getItem("token");
-        const selectedBooks = JSON.parse(localStorage.getItem("selectedBooksForBorrow")) || [];
-        console.log("Books being borrowed:", selectedBooks);
-
-        try {
-            // Mise à jour des informations utilisateur
-            await axios.put("http://localhost:3001/users/update", { ...this.user }, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-
-            // Mettre à jour le nombre de livres empruntés
-            const response = await axios.put("http://localhost:3001/users/finalize-borrow", {
-            borrowedCount: selectedBooks.length,
-            }, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-
-            console.log("Borrow response:", response.data);
-
-            alert(`Borrow confirmed. You have borrowed ${selectedBooks.length} books.`);
-            localStorage.removeItem("shoppingCart");
-            localStorage.removeItem("selectedBooksForBorrow");
-            this.$router.push("/");
-        } catch (error) {
-            console.error("Error finalizing borrow:", error.response?.data || error.message);
-            alert("Failed to finalize borrow. Please try again.");
-        }
-        }
+        const response = await axios.get("http://localhost:3001/users/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        this.user = response.data;
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        alert("Session expired. Please log in again.");
+        this.$router.push("/Authentification");
+      }
     },
-    mounted() {
-      this.fetchUserInfo();
+
+    // Finaliser l'emprunt
+    async finalizeBorrow() {
+      const token = localStorage.getItem("token");
+      const selectedBooks = JSON.parse(localStorage.getItem("selectedBooksForBorrow")) || [];
+
+      if (selectedBooks.length === 0) {
+        alert("No books selected.");
+        return;
+      }
+
+      try {
+        console.log("Selected books:", selectedBooks);
+
+        // Étape 1 : Mettre à jour le nombre de livres empruntés
+        await axios.put(
+          "http://localhost:3001/users/finalize-borrow",
+          { borrowedCount: selectedBooks.length },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Étape 2 : Mettre à jour `isAvailable` pour chaque livre emprunté
+        const updatedBooks = [];
+        for (const book of selectedBooks) {
+          await axios.put(
+            `http://localhost:3001/books/${book.id}`, // Mettre à jour le livre spécifique
+            { isAvailable: false }, // Changement de l'état à false
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          updatedBooks.push(book.id); // Enregistrer les IDs mis à jour
+        }
+
+        console.log("Books successfully marked as borrowed.");
+
+        // Étape 3 : Mettre à jour le localStorage pour retirer les livres empruntés
+        let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
+        cart = cart.filter((book) => !updatedBooks.includes(book.id));
+        localStorage.setItem("shoppingCart", JSON.stringify(cart));
+
+        console.log("Cart updated. Remaining books:", cart);
+
+        // Étape 4 : Réinitialiser les livres sélectionnés
+        localStorage.removeItem("selectedBooksForBorrow");
+
+        // Succès
+        alert(`Borrow confirmed. You have borrowed ${selectedBooks.length} books.`);
+        this.$router.push("/");
+      } catch (error) {
+        console.error("Error during finalize borrow:", error.response?.data || error.message);
+        alert("Failed to finalize borrow. Please try again.");
+      }
     },
-  };
-  </script>
+  },
+  mounted() {
+    this.fetchUserInfo();
+  },
+};
+</script>
+
   
 <style scoped>
     .user-info-container {
