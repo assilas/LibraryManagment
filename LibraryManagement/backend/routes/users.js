@@ -121,6 +121,8 @@ router.get('/profile', async (req, res) => {
   }
 });
 
+
+
 router.get('/members', async (req, res) => {
     try {
       const members = await User.findAll();
@@ -223,6 +225,23 @@ router.get('/members', async (req, res) => {
     } catch (error) {
       console.error("Error during finalize borrow:", error.message);
       res.status(500).json({ error: "Failed to finalize borrow." });
+    }
+  });
+  // Supprimer un membre par ID
+router.delete('/delete/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found.' });
+      }
+  
+      await user.destroy(); // Supprime l'utilisateur de la base de données
+      res.status(200).json({ message: 'User deleted successfully.' });
+    } catch (error) {
+      console.error('Error deleting user:', error.message);
+      res.status(500).json({ error: 'Failed to delete user.' });
     }
   });
   
