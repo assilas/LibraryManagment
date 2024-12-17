@@ -112,8 +112,7 @@ export default {
   },
 };
 </script>
-
-  
+ 
 <style scoped>
     .user-info-container {
     max-width: 600px;
@@ -179,5 +178,5 @@ export default {
     button:hover {
     background-color: #4aa570;
     }     
-     
+
 </style>
