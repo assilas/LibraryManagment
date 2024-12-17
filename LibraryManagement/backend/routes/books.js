@@ -78,7 +78,7 @@ router.post('/', async (req, res) => {
 // Mettre à jour un livre
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, author, genre, publishedYear, summary, cover } = req.body;
+    const { title, author, genre, publishedYear, summary, cover, isAvailable } = req.body; // <-- Ajout de isAvailable
 
     try {
         const book = await Book.findByPk(id);
@@ -87,7 +87,7 @@ router.put('/:id', async (req, res) => {
             return res.status(404).send('Livre non trouvé');
         }
 
-        // Mise à jour des informations du livre
+        // Mise à jour des informations du livre, y compris isAvailable
         book.title = title || book.title;
         book.author = author || book.author;
         book.genre = genre || book.genre;
@@ -95,8 +95,12 @@ router.put('/:id', async (req, res) => {
         book.summary = summary || book.summary;
         book.cover = cover || book.cover;
 
+        if (isAvailable !== undefined) {
+            book.isAvailable = isAvailable; // Mise à jour de isAvailable si fourni
+        }
+
         await book.save();
-        res.json({ success: true, book });
+        res.json({ success: true, message: 'Book updated successfully.', book });
     } catch (error) {
         console.error("Erreur lors de la mise à jour du livre :", error);
         res.status(500).send("Erreur du serveur");

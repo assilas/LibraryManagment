@@ -196,8 +196,33 @@ router.get('/members', async (req, res) => {
     }
   });
 
-  
+  // Mettre à jour le nombre de livres empruntés
+router.put('/update-borrowedBooks/:id', async (req, res) => {
+  const { id } = req.params; // Récupère l'ID de l'utilisateur dans les paramètres de la requête
+  const { borrowedBooks } = req.body; // Récupère la nouvelle valeur depuis le body
 
+  try {
+      // Rechercher l'utilisateur dans la base de données
+      const user = await User.findByPk(id);
+
+      if (!user) {
+          return res.status(404).json({ error: "User not found." });
+      }
+
+      // Mettre à jour le champ borrowedBooks
+      user.borrowedBooks = borrowedBooks;
+      await user.save();
+
+      res.status(200).json({ message: "Borrowed books updated successfully.", user });
+  } catch (error) {
+      console.error("Error updating borrowedBooks:", error);
+      res.status(500).json({ error: "Failed to update borrowedBooks." });
+  }
+});
+
+  router.put("/finalize-borrow", async (req, res) => {
+    const { borrowedCount } = req.body; // Nombre de livres empruntés
+    const token = req.headers.authorization?.split(" ")[1];
   
 
   // Supprimer un membre par ID

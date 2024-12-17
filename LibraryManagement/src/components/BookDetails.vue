@@ -102,7 +102,7 @@
 
 
 <script>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import axios from "axios";
 
 export default {
@@ -120,11 +120,11 @@ export default {
     // Fonction pour ajuster dynamiquement maxVisible
     const updateMaxVisible = () => {
       const containerWidth = document.querySelector(".carousel-container")?.offsetWidth || window.innerWidth;
-      const bookCardWidth = 200; // Largeur approximative d'une carte (incluant les marges)
+      const bookCardWidth = 200; // Largeur approximative d'une carte
       const arrowSpace = 80; // Espace réservé pour les flèches (40px de chaque côté)
-      
-      // Calculer le nombre maximum de livres visibles en fonction de la largeur du conteneur
+
       maxVisible.value = Math.max(Math.floor((containerWidth - arrowSpace) / bookCardWidth), 1);
+      console.log("Max visible books updated:", maxVisible.value);
     };
 
     // Récupérer les détails du livre et suggestions
@@ -149,6 +149,10 @@ export default {
             b.genre.split(",").some((g) => bookGenres.includes(g.trim().toLowerCase()))
         );
         recommendedBooks.value = getRandomBooks(filteredBooks, 7);
+
+        // Force un recalcul après le chargement des données
+        await nextTick();
+        updateMaxVisible();
       } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
       }
@@ -160,24 +164,20 @@ export default {
     };
 
     const addToCart = (selectedBook) => {
-      // Récupère le panier actuel
       const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
       const existingBook = cart.find((item) => item.title === selectedBook.title);
 
       if (existingBook) {
         alert("This book is already in your cart!");
       } else {
-        // Ajoute le livre au panier
         cart.push(selectedBook);
         localStorage.setItem(cartKey, JSON.stringify(cart));
         alert(`${selectedBook.title} has been added to your cart!`);
-
-        // Émet un événement pour synchroniser avec le compteur du panier
         const event = new Event("cart-updated");
         window.dispatchEvent(event);
       }
     };
-    
+
     const formatTitle = (title) => title.toLowerCase().replace(/\s+/g, "-");
 
     watch(() => props.title, fetchBookDetails);
@@ -185,13 +185,9 @@ export default {
     onMounted(() => {
       fetchBookDetails();
       updateMaxVisible();
+
+      // Écoute l'événement resize pour ajuster maxVisible
       window.addEventListener("resize", updateMaxVisible);
-      window.addEventListener("resize", () => {
-        const containerWidth = document.querySelector(".carousel-container")?.offsetWidth || window.innerWidth;
-        const bookCardWidth = 200;
-        const arrowSpace = 80;
-        maxVisible.value = Math.max(Math.floor((containerWidth - arrowSpace) / bookCardWidth), 1);
-      });
     });
 
     return {
@@ -206,6 +202,7 @@ export default {
     };
   },
 };
+
 </script>
 
 
@@ -336,6 +333,9 @@ body, html {
 
 .carousel-container {
   position: relative; /* Position relative pour que les flèches soient ancrées à ce conteneur */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden; /* Évite tout dépassement */
   padding: 0 50px; /* Ajuste l'espace pour centrer les flèches */
 }
@@ -358,7 +358,7 @@ body, html {
   color: #333;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 5;
 }
 
 .nav-button.left {

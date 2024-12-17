@@ -12,7 +12,6 @@ const User = sequelize.define('User', {
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true, // Contrainte unique
         validate: {
             isEmail: { msg: 'Must be a valid email address.' },
             notEmpty: { msg: 'Email cannot be empty.' },
