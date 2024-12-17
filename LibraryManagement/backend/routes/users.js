@@ -161,72 +161,45 @@ router.get('/members', async (req, res) => {
     }
   });
   
-  router.put("/update", async (req, res) => {
-    const { username, email, address, phoneNumber } = req.body;
-    const token = req.headers.authorization?.split(" ")[1];
-  
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized access. Token missing." });
-    }
+
+
+
+
+  router.put("/update/:id", async (req, res) => {
+    const { id } = req.params;
+    const { username, email } = req.body; // Champs optionnels
   
     try {
-      const decoded = jwt.verify(token, "your_jwt_secret");
-      const user = await User.findByPk(decoded.id);
-  
+      const user = await User.findByPk(id);
       if (!user) {
+        console.error("User not found with ID:", id);
         return res.status(404).json({ error: "User not found." });
       }
   
-      // Mise à jour des informations utilisateur
-      user.username = username || user.username;
-      user.email = email || user.email;
-      user.address = address || user.address;
-      user.phoneNumber = phoneNumber || user.phoneNumber;
-      await user.save();
-  
-      res.status(200).json({ message: "User updated successfully." });
-    } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ error: "Failed to update user information." });
-    }
-  });
-  
-  router.put("/finalize-borrow", async (req, res) => {
-    const { borrowedCount } = req.body; // Nombre de livres empruntés
-    const token = req.headers.authorization?.split(" ")[1];
-  
-    if (!token) {
-      console.error("Token missing");
-      return res.status(401).json({ error: "Unauthorized access. Token missing." });
-    }
-  
-    try {
-      const decoded = jwt.verify(token, "your_jwt_secret");
-      console.log("Decoded token:", decoded);
-  
-      const user = await User.findByPk(decoded.id);
-      if (!user) {
-        console.error("User not found with ID:", decoded.id);
-        return res.status(404).json({ error: "User not found." });
+      // Mise à jour conditionnelle des informations utilisateur
+      if (username) {
+        user.username = username;
       }
   
-      console.log("Current borrowedBooks:", user.borrowedBooks);
-      console.log("Books to borrow:", borrowedCount);
+      if (email) {
+        user.email = email;
+      }
   
-      // Mise à jour du nombre de livres empruntés
-      user.borrowedBooks += borrowedCount;
+      // Enregistrer les changements
       await user.save();
+      console.log("User updated successfully:", user);
   
-      console.log("Updated borrowedBooks:", user.borrowedBooks);
-      res.status(200).json({
-        message: `Borrowed ${borrowedCount} books successfully.`,
-        borrowedBooks: user.borrowedBooks,
-      });
+      res.status(200).json({ message: "User updated successfully.", user });
     } catch (error) {
-      console.error("Error during finalize borrow:", error.message);
-      res.status(500).json({ error: "Failed to finalize borrow." });
+      console.error("Error:", error);
+      res.status(500).json({ error: "Failed to update user." });
     }
   });
+
+  
+
+  
+
   // Supprimer un membre par ID
 router.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;

@@ -25,8 +25,10 @@
           <td>{{ member.username }}</td>
           <td>{{ member.email }}</td>
           <td>
-            <button @click="openModal(member)">View Activity</button>
-            <button @click="removeMember(member.id)" class="remove-btn">Remove Member</button>
+            <button @click="openModal(member)" class="action-btn">View Activity</button>
+            <button @click="removeMember(member.id)" class="action-btn remove-btn">
+              Remove Member
+            </button>
           </td>
         </tr>
       </tbody>
@@ -34,11 +36,29 @@
 
     <!-- Modal Window -->
     <div v-if="showModal" class="modal-overlay">
-      <div class="modal-content">
-        <h2>Member Details</h2>
-        <p><strong>Name:</strong> {{ selectedMember.username }}</p>
-        <p><strong>Email:</strong> {{ selectedMember.email }}</p>
-        <button class="close-btn" @click="closeModal">Close</button>
+      <div class="modal-window">
+        <!-- Titre -->
+        <h2 class="modal-title">{{ isEditing ? "Modify Info" : "Member Details" }}</h2>
+
+        <!-- View Activity -->
+        <div v-if="!isEditing">
+          <p><strong>Name:</strong> {{ selectedMember.username }}</p>
+          <p><strong>Email:</strong> {{ selectedMember.email }}</p>
+          <button @click="toggleEditMode" class="action-btn modify-btn">Modify Info</button>
+        </div>
+
+        <!-- Modify Info Form -->
+        <div v-else>
+          <input v-model="editForm.username" placeholder="Enter new name" class="input-field" />
+          <input v-model="editForm.email" placeholder="Enter new email" class="input-field" />
+
+          <!-- Buttons Aligned -->
+          <div class="button-group">
+            <button @click="updateMemberInfo" class="action-btn save-btn">Save</button>
+            <button @click="toggleEditMode" class="action-btn back-btn">Back</button>
+            <button @click="closeModal" class="action-btn close-btn">Close</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -52,8 +72,13 @@ export default {
     return {
       searchQuery: "",
       showModal: false,
+      isEditing: false,
       selectedMember: null,
       members: [],
+      editForm: {
+        username: "",
+        email: "",
+      },
     };
   },
   computed: {
@@ -75,17 +100,35 @@ export default {
         const response = await axios.get("http://localhost:3001/users/members");
         this.members = response.data;
       } catch (error) {
-        console.error("Erreur lors du chargement des membres :", error);
-        alert("Failed to load members data.");
+        console.error("Error loading members:", error);
       }
     },
     openModal(member) {
       this.selectedMember = member;
+      this.editForm = { username: member.username, email: member.email };
+      this.isEditing = false;
       this.showModal = true;
     },
     closeModal() {
       this.showModal = false;
-      this.selectedMember = null;
+      this.isEditing = false;
+    },
+    toggleEditMode() {
+      this.isEditing = !this.isEditing;
+    },
+    async updateMemberInfo() {
+      try {
+        await axios.put(
+          `http://localhost:3001/users/update/${this.selectedMember.id}`,
+          { username: this.editForm.username, email: this.editForm.email }
+        );
+        alert("Member information updated successfully!");
+        this.loadMembers();
+        this.closeModal();
+      } catch (error) {
+        console.error("Error updating member info:", error);
+        alert("Failed to update member information.");
+      }
     },
     async removeMember(memberId) {
       if (confirm("Are you sure you want to remove this member?")) {
@@ -127,7 +170,7 @@ h1 {
   max-width: 400px;
   padding: 10px;
   border: 1px solid #e4cfcf;
-  border-radius: 5px;
+  border-radius: 10px;
   background-color: #fff5f0;
 }
 
@@ -135,40 +178,36 @@ h1 {
   width: 100%;
   max-width: 800px;
   border-collapse: collapse;
+  border: 1.5px solid #ac4e4e; /* Contour épais en rose foncé */
 }
 
-.members-table th,
+.members-table th {
+  background-color: #f8c0c0; /* Rose clair */
+  color: #ac4e4e; /* Rose foncé */
+  font-size: 1.2rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Ombre douce */
+  padding: 15px;
+}
+
 .members-table td {
-  border: 1px solid #e4cfcf;
+  border: 1px solid #ac4e4e; /* Contour épais */
   padding: 15px;
   text-align: center;
 }
 
-.members-table th {
-  background: #fffaf4;
-  color: #8f3e3e;
-}
-
-button {
-  padding: 10px 15px;
-  margin: 5px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button:hover {
-  opacity: 0.8;
-}
-
-.remove-btn {
-  background-color: #e57373;
+.action-btn {
+  background-color: #f6a5a5; /* Rose clair */
   color: white;
+  padding: 10px 20px;
+  margin-right: 10px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s ease;
 }
 
-.close-btn {
-  margin-top: 10px;
-  background-color: #d19090;
+.action-btn:hover {
+  background-color: #e57373; /* Rose foncé */
 }
 
 .modal-overlay {
@@ -183,11 +222,33 @@ button:hover {
   align-items: center;
 }
 
-.modal-content {
+.modal-window {
   background: white;
-  padding: 20px;
   border-radius: 10px;
+  padding: 20px;
   width: 300px;
   text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+  color: #d87e7e; /* Rose foncé */
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.input-field {
+  width: 90%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #e4cfcf;
+  border-radius: 1px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 </style>
