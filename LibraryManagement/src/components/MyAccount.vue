@@ -35,11 +35,48 @@
       <div v-if="userRole === 'member'">
         <button @click="navigateTo('/Catalog')">Borrow a Book</button>
         <button @click="navigateTo('/BorrowingRecords')">Borrowing Records</button>
+        <button @click="openEditModal" class="edit-btn">Modify Information</button>
       </div>
 
       <div v-if="userRole === 'librarian'">
         <button @click="navigateTo('/ManageBooksReturn')">Manage Book Returns</button>
         <button @click="navigateTo('/MembershipManagement')">Manage Memberships</button>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div v-if="showEditModal" class="modal-overlay">
+      <div class="modal-window">
+        <h2 class="modal-title">{{ isEditing ? "Modify Info" : "Member Details" }}</h2>
+
+        <!-- Display information before editing -->
+        <div v-if="!isEditing">
+          <p><strong>Name:</strong> {{ accountName }}</p>
+          <p><strong>Email:</strong> {{ editForm.email }}</p>
+          <p><strong>Address:</strong> {{ editForm.address || "N/A" }}</p>
+          <p><strong>Phone Number:</strong> {{ editForm.phoneNumber || "N/A" }}</p>
+          <div class="button-group">
+            <button @click="toggleEditMode" class="action-btn modify-btn">Modify Info</button>
+            <button @click="closeModal" class="action-btn close-btn">Close</button>
+          </div>
+        </div>
+
+        <!-- Form to edit information -->
+        <div v-else>
+          <input v-model="editForm.username" placeholder="Enter new name" class="input-field" />
+          <input v-model="editForm.email" placeholder="Enter new email" class="input-field" />
+          <input v-model="editForm.address" placeholder="Enter new address" class="input-field" />
+          <input
+            v-model="editForm.phoneNumber"
+            placeholder="Enter phone number"
+            class="input-field"
+          />
+          <div class="button-group">
+            <button @click="updateUserInfo" class="action-btn save-btn">Save</button>
+            <button @click="toggleEditMode" class="action-btn back-btn">Back</button>
+            <button @click="closeModal" class="action-btn close-btn">Close</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -62,10 +99,20 @@ export default {
         'src/assets/img/avatar4.webp',
         'src/assets/img/avatar5.webp',
       ],
+      showEditModal: false,
       userRole: '',
+      isEditing: false,
+      editForm: {
+        id: '', // Ajout de l'ID ici
+        username: '',
+        email: '',
+        address: '',
+        phoneNumber: '',
+      },
     };
   },
   async created() {
+    
     const token = localStorage.getItem('token');
 
     if (!token) {
@@ -78,9 +125,20 @@ export default {
       const headers = { Authorization: `Bearer ${token}` };
       const res = await axios.get('http://localhost:3001/users/profile', { headers });
 
+      console.log("Données reçues du backend :", res.data);
+
+
       this.accountName = res.data.username;
       this.userRole = res.data.role ? res.data.role.toLowerCase() : 'member';
       this.profileImage = localStorage.getItem('profileImage') || this.defaultImage;
+      this.editForm = {
+        id: res.data.id, // Assurer que l'ID est bien récupéré
+        username: res.data.username,
+        email: res.data.email,
+        address: res.data.address || '',
+        phoneNumber: res.data.phoneNumber || '',
+      };
+
     } catch (err) {
       console.error('Error fetching profile:', err.message);
       alert('Session expired or invalid. Please log in again.');
@@ -96,6 +154,57 @@ export default {
       this.profileImage = avatar;
       localStorage.setItem('profileImage', this.profileImage);
       this.showAvatarOptions = false;
+    },
+    openEditModal() {
+      this.showEditModal = true;
+      this.isEditing = false; // Start in "view" mode
+    },
+    closeModal() {
+      this.showEditModal = false;
+    },
+    toggleEditMode() {
+      this.isEditing = !this.isEditing;
+    },
+    async updateUserInfo() {
+      try {
+        console.log("User ID envoyé :", this.editForm.id);
+
+        // Vérifier si l'ID est défini
+        if (!this.editForm.id) {
+          alert('User ID is missing.');
+          return;
+        }
+
+        const token = localStorage.getItem('token'); // Récupérer le token JWT
+        const headers = { Authorization: `Bearer ${token}` };
+
+        
+        // Envoyer les informations mises à jour au serveur
+        const response = await axios.put(
+          `http://localhost:3001/users/update/${this.editForm.id}`,
+          {
+            id: this.editForm.id,
+            username: this.editForm.username,
+            email: this.editForm.email,
+            address: this.editForm.address,
+            phoneNumber: this.editForm.phoneNumber,
+          },
+          { headers }
+        );
+
+        // Si la mise à jour réussit
+        if (response.status === 200) {
+          alert("Votre information a été mise à jour avec succès!");
+          this.accountName = this.editForm.username;
+          this.closeModal(); // Fermer le modal
+        }
+
+       } catch (err) {
+    console.error('Error fetching profile:', err.message);
+    alert('Session expired or invalid. Please log in again.');
+    localStorage.clear();
+    this.$router.push('/auth');
+  }
     },
   },
 };
@@ -207,4 +316,66 @@ button:hover {
   font-weight: bold;
   margin-bottom: 30px;
 }
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-window {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.input-field {
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.button-group button {
+  margin: 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.close-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.edit-btn {
+  margin-top: 20px;
+  background-color: #a74369;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background-color: #8e3d5c;
+}
+
 </style>
