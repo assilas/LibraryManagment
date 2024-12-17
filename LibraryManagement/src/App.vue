@@ -17,27 +17,34 @@
         🛒 <span class="cart-count">{{ cartCount }}</span>
       </router-link>
 
-      <!-- Notification Icon -->
-      <div class="notification-icon" @click="openNotifications">
-        📩 <span class="notification-count">{{ notifications.length }}</span>
+      <div class="notification-link movable-icon" @click="toggleNotifications" style="--icon-top: 20px;">
+        <span class="icon">📩</span>
+        <span class="notification-count">{{ notifications.length }}</span>
       </div>
+
+
 
     </nav>
 
-    <!-- Notification Dropdown -->
-    <div v-if="showNotifications" class="notification-dropdown">
-      <ul>
-        <li v-for="(notification, index) in notifications" :key="index">
-          {{ notification }}
-        </li>
-        <li v-if="notifications.length === 0" class="empty-message">No notifications</li>
-      </ul>
-    </div>
+  <div v-if="showNotifications" class="notification-window">
+    <h3>Notifications</h3>
+    <ul>
+      <li v-for="(notification, index) in notifications" :key="index">
+        {{ notification }}
+      </li>
+      <!-- Message par défaut si aucune notification -->
+      <li v-if="notifications.length === 0" class="empty-message">
+        There is no notifications yet. 
+      </li>
+    </ul>
+  </div>
+
 
     <router-view
       :isLoggedIn="isLoggedIn"
       :userRole="userRole"
       @update-login-state="updateLoginState"
+      @send-notification="addNotification"
       :key="$route.fullPath"
     />
   </div>
@@ -81,8 +88,12 @@ export default {
     addNotification(notification) {
       this.notifications.push(notification);
     },
-    openNotifications() {
+    toggleNotifications() {
       this.showNotifications = !this.showNotifications;
+    },
+    clearNotifications() {
+      this.notifications = [];
+      this.showNotifications = false;
     },
   },
   mounted() {
@@ -144,4 +155,75 @@ nav a:hover {
   font-size: 12px;
   font-weight: bold;
 }
+/* Conteneur principal pour la notification */
+.notification-link {
+  position: relative;
+  display: inline-block;
+  font-size: 20px;
+  margin-left: 25px;
+  cursor: pointer;
+}
+
+/* Style de l'icône */
+.notification-link .icon {
+  font-size: 24px;
+}
+
+/* Style du badge rouge */
+.notification-link .notification-count {
+  position: absolute;
+  top: -7px;
+  right: -11px;
+  background-color: rgba(255, 0, 0, 0.584);
+  color: white;
+  border-radius: 50%;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Classe pour rendre l'icône déplaçable */
+.movable-icon {
+  position: relative; /* Position relative pour le déplacer */
+  top: var(--icon-top, 19px); /* Contrôle vertical */
+  left: var(--icon-left, 10px); /* Optionnel : contrôle horizontal */
+}
+.notification-window {
+  position: absolute;
+  top: 100px; /* Décalé sous le nav */
+  right: 20px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  width: 250px;
+  z-index: 1000;
+}
+
+.notification-window h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #875151;
+  text-align: center;
+}
+
+.empty-message {
+  font-size: 14px;
+  color: #888;
+  text-align: center;
+}
+
+.notification-window ul {
+  list-style: none;
+  padding: 0;
+}
+
+.notification-window li {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #9c7171;
+}
+
+
 </style>
