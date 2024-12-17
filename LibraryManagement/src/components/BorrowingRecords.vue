@@ -1,69 +1,119 @@
 <template>
   <div class="borrowing-records">
-    <h1>You have a number of {{ borrowedBooks }} books borrowed</h1>
+    <h1>You have {{ borrowedBooks.length }} books borrowed</h1>
     <p>The limit of borrow is {{ borrowLimit }}</p>
 
-    <div class="returned-books-section" v-if="pendingReturns.length > 0">
-      <h2>Returned Books Pending Inspection</h2>
-      <div class="book-card" v-for="book in pendingReturns" :key="book.id">
+    <div v-if="borrowedBooks.length > 0">
+      <h2>Your Borrowed Books</h2>
+      <div
+        class="book-card"
+        v-for="book in borrowedBooks"
+        :key="book.id"
+      >
         <h3>{{ book.title }}</h3>
         <p>Author: {{ book.author }}</p>
-        <p>Status: 
-          <span :class="getStatusClass(book.status)">{{ book.status }}</span>
-        </p>
-        <div v-if="book.status === 'Pending'">
-          <button @click="confirmReturn(book)">Confirm Return</button>
-          <button @click="markAsDamaged(book)">Mark as Damaged</button>
-        </div>
-        <div v-if="book.status === 'Damaged'">
-          <button @click="generateInvoice(book)">Generate Invoice</button>
-        </div>
+        <p>Borrowed Date: {{ formatDate(book.borrowedDate) }}</p>
+        <p>Return Deadline: {{ formatDate(book.returnDeadline) }}</p>
+        <p>Time Left: <span :class="getTimeClass(book.daysLeft)">{{ book.daysLeft }} days</span></p>
+        <button @click="returnBook(book)">Return</button>
       </div>
     </div>
 
     <div v-else>
-      <p>No books pending inspection.</p>
+      <p>You have not borrowed any books yet.</p>
     </div>
   </div>
 </template>
 
 <script>
-import jsPDF from "jspdf";
+import axios from "axios";
 
 export default {
   data() {
     return {
-      borrowedBooks: 0, // Replace with real data
-      borrowLimit: 10,
-      pendingReturns: [
-        { id: 1, title: "Book 1", author: "Author 1", status: "Pending" },
-        { id: 2, title: "Book 2", author: "Author 2", status: "Pending" },
-      ],
+      borrowedBooks: [], // Liste des livres empruntés
+      borrowLimit: 10, // Limite de livres empruntés
     };
   },
   methods: {
-    confirmReturn(book) {
-      book.status = "Confirmed";
+    async fetchBorrowedBooks() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You need to log in first.");
+        this.$router.push("/Authentification");
+        return;
+      }
+
+      try {
+        // Étape 1 : Récupérer les infos de l'utilisateur
+        const userResponse = await axios.get("http://localhost:3001/users/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const borrowedCount = userResponse.data.borrowedBooks || 0;
+
+        // Étape 2 : Récupérer les livres marqués comme empruntés
+        const booksResponse = await axios.get("http://localhost:3001/books");
+        const allBooks = booksResponse.data;
+
+        this.borrowedBooks = allBooks
+          .filter((book) => !book.isAvailable) // Sélectionne les livres empruntés
+          .slice(0, borrowedCount)
+          .map((book) => {
+            // Ajouter la date d'emprunt et la date limite
+            const borrowedDate = new Date(book.updatedAt); // Date de dernière mise à jour
+            const returnDeadline = new Date(borrowedDate);
+            returnDeadline.setMonth(returnDeadline.getMonth() + 1); // Ajouter 1 mois
+
+            // Calcul du temps restant en jours
+            const today = new Date();
+            const daysLeft = Math.ceil((returnDeadline - today) / (1000 * 60 * 60 * 24));
+
+            return {
+              ...book,
+              borrowedDate,
+              returnDeadline,
+              daysLeft,
+            };
+          });
+      } catch (error) {
+        console.error("Error fetching borrowed books:", error.message);
+        alert("Failed to fetch borrowed books.");
+      }
     },
-    markAsDamaged(book) {
-      book.status = "Damaged";
+
+    async returnBook(book) {
+      const token = localStorage.getItem("token");
+      try {
+        // Étape 1 : Mettre à jour le livre comme disponible
+        await axios.put(
+          `http://localhost:3001/books/${book.id}`, 
+          { isAvailable: true }, // Change l'état du livre
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Étape 2 : Mettre à jour la liste des livres empruntés côté utilisateur
+        this.borrowedBooks = this.borrowedBooks.filter((b) => b.id !== book.id);
+
+        // Étape 3 : Afficher un message de confirmation
+        alert(`${book.title} has been successfully returned.`);
+      } catch (error) {
+        console.error("Error returning the book:", error.message);
+        alert("Failed to return the book. Please try again.");
+      }
     },
-    getStatusClass(status) {
-      return {
-        Pending: "status-pending",
-        Confirmed: "status-confirmed",
-        Damaged: "status-damaged",
-      }[status];
+
+    formatDate(date) {
+      return new Date(date).toLocaleDateString();
     },
-    generateInvoice(book) {
-      const doc = new jsPDF();
-      doc.text("Invoice for Damaged Book", 10, 10);
-      doc.text(`Title: ${book.title}`, 10, 20);
-      doc.text(`Author: ${book.author}`, 10, 30);
-      doc.text("Library: Your Library Name", 10, 40);
-      doc.text("Amount Due: €10", 10, 50);
-      doc.save(`invoice_${book.title}.pdf`);
+
+    getTimeClass(daysLeft) {
+      if (daysLeft <= 5) return "time-critical";
+      if (daysLeft <= 15) return "time-warning";
+      return "time-safe";
     },
+  },
+  mounted() {
+    this.fetchBorrowedBooks();
   },
 };
 </script>
@@ -81,10 +131,6 @@ export default {
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.returned-books-section {
-  margin-top: 20px;
-}
-
 .book-card {
   background-color: #fff;
   border: 1px solid #ccc;
@@ -95,20 +141,8 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.status-pending {
-  color: orange;
-}
-
-.status-confirmed {
-  color: green;
-}
-
-.status-damaged {
-  color: red;
-}
-
 button {
-  margin: 5px;
+  margin-top: 10px;
   padding: 5px 10px;
   background-color: #97597f;
   color: white;
@@ -119,5 +153,18 @@ button {
 
 button:hover {
   background-color: #823c64;
+}
+
+.time-critical {
+  color: red;
+  font-weight: bold;
+}
+
+.time-warning {
+  color: orange;
+}
+
+.time-safe {
+  color: green;
 }
 </style>

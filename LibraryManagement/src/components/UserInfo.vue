@@ -34,7 +34,9 @@ export default {
         email: "",
         address: "",
         phoneNumber: "",
+        borrowedBooks: 0, // Nombre actuel de livres empruntés
       },
+      borrowLimit: 10, // Limite de livres empruntables
     };
   },
   methods: {
@@ -63,30 +65,39 @@ export default {
         return;
       }
 
+      // Étape 1 : Vérification de la limite des livres empruntables
+      const totalBooksToBorrow = this.user.borrowedBooks + selectedBooks.length;
+
+      if (totalBooksToBorrow > this.borrowLimit) {
+        alert(`You cannot borrow more than ${this.borrowLimit} books in total. 
+        You currently have ${this.user.borrowedBooks} books borrowed.`);
+        return;
+      }
+
       try {
         console.log("Selected books:", selectedBooks);
 
-        // Étape 1 : Mettre à jour le nombre de livres empruntés
+        // Mise à jour du nombre de livres empruntés côté serveur
         await axios.put(
           "http://localhost:3001/users/finalize-borrow",
           { borrowedCount: selectedBooks.length },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Étape 2 : Mettre à jour `isAvailable` pour chaque livre emprunté
+        // Mise à jour de l'état de disponibilité des livres
         const updatedBooks = [];
         for (const book of selectedBooks) {
           await axios.put(
-            `http://localhost:3001/books/${book.id}`, // Mettre à jour le livre spécifique
-            { isAvailable: false }, // Changement de l'état à false
+            `http://localhost:3001/books/${book.id}`,
+            { isAvailable: false },
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          updatedBooks.push(book.id); // Enregistrer les IDs mis à jour
+          updatedBooks.push(book.id);
         }
 
         console.log("Books successfully marked as borrowed.");
 
-        // Étape 3 : Mettre à jour le localStorage pour retirer les livres empruntés
+        // Mise à jour du localStorage (retrait des livres empruntés du panier)
         let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
         cart = cart.filter((book) => !updatedBooks.includes(book.id));
         localStorage.setItem("shoppingCart", JSON.stringify(cart));
@@ -95,7 +106,8 @@ export default {
         window.dispatchEvent(event);
 
         console.log("Cart updated. Remaining books:", cart);
-        // Étape 4 : Réinitialiser les livres sélectionnés
+
+        // Réinitialisation des livres sélectionnés
         localStorage.removeItem("selectedBooksForBorrow");
 
         // Succès
@@ -112,6 +124,7 @@ export default {
   },
 };
 </script>
+
  
 <style scoped>
     .user-info-container {

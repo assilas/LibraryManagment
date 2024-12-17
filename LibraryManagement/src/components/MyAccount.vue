@@ -74,20 +74,20 @@ export default {
   }
 
   try {
-    // Utilisation d'un token JWT (même pour librarian)
+    // Utilisation d'un token JWT
     const headers = { Authorization: `Bearer ${token}` };
 
     console.log('Headers sent to server:', headers);
 
-    const res = await axios.get('http://localhost:3001/users/profile', {
-      headers,
-    });
+    const res = await axios.get('http://localhost:3001/users/profile', { headers });
 
     console.log('API Response:', res.data);
 
     this.accountName = res.data.username;
-    this.userRole = res.data.role;
+    this.userRole = res.data.role ? res.data.role.toLowerCase() : 'member';
     this.profileImage = localStorage.getItem('profileImage') || this.defaultImage;
+
+    console.log('User role:', this.userRole);
   } catch (err) {
     console.error('Error fetching profile:', err.response ? err.response.data : err.message);
     alert('Session expired or invalid. Please log in again.');
@@ -95,6 +95,7 @@ export default {
     this.$router.push('/auth');
   }
 },
+
 
 
 
