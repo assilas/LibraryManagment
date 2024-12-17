@@ -16,7 +16,24 @@
       <router-link to="/cart" class="cart-link">
         🛒 <span class="cart-count">{{ cartCount }}</span>
       </router-link>
+
+      <!-- Notification Icon -->
+      <div class="notification-icon" @click="openNotifications">
+        📩 <span class="notification-count">{{ notifications.length }}</span>
+      </div>
+
     </nav>
+
+    <!-- Notification Dropdown -->
+    <div v-if="showNotifications" class="notification-dropdown">
+      <ul>
+        <li v-for="(notification, index) in notifications" :key="index">
+          {{ notification }}
+        </li>
+        <li v-if="notifications.length === 0" class="empty-message">No notifications</li>
+      </ul>
+    </div>
+
     <router-view
       :isLoggedIn="isLoggedIn"
       :userRole="userRole"
@@ -33,6 +50,8 @@ export default {
       isLoggedIn: !!localStorage.getItem("token"), // Vérifie si un token existe
       userRole: localStorage.getItem("userRole") || null, // Récupère le rôle depuis localStorage
       cartCount: 0, // Compteur pour le panier
+      notifications: [], // Tableau de notifications
+      showNotifications: false, // Contrôle l'affichage du menu des notifications
     };
   },
   methods: {
@@ -58,6 +77,12 @@ export default {
       // Récupère les livres dans le panier depuis localStorage
       const cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
       this.cartCount = cart.length;
+    },
+    addNotification(notification) {
+      this.notifications.push(notification);
+    },
+    openNotifications() {
+      this.showNotifications = !this.showNotifications;
     },
   },
   mounted() {

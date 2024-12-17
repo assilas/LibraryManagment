@@ -1,6 +1,6 @@
 <template>
     <div class="manage-returns">
-      <h1>Manage Book Returns</h1>
+      <h1>📚Manage Book Returns</h1>
       
       <!-- Table for displaying books -->
       <table>
@@ -31,34 +31,43 @@
   </template>
   
   <script>
+  import axios from "axios";
+
   export default {
     data() {
       return {
-        returnedBooks: [
-          // Example data for testing
-          {
-            title: "The Great Gatsby",
-            member: "Alice Doe",
-            returnDate: "2024-12-01",
-          },
-        ],
+        returnedBooks: [],
       };
     },
     methods: {
-      markAsDamaged(book, index) {
-        // Notify the member about the damage
-        alert(`Notification sent: Return of "${book.title}" marked as damaged. Member: ${book.member}.`);
-  
-        // Remove the book from the table
-        this.returnedBooks.splice(index, 1);
+          async markAsDamaged(book) {
+        try {
+          await axios.put(`http://localhost:3001/books/damaged/${book.id}`, {
+            memberId: book.memberId,
+          });
+
+          this.$emit(
+            "send-notification",
+            `Book "${book.title}" marked as damaged. Notification sent to ${book.memberName}.`
+          );
+          this.borrowedBooks = this.borrowedBooks.filter((b) => b.id !== book.id);
+        } catch (error) {
+          console.error("Error marking book as damaged:", error);
+        }
       },
-      confirmReturn(book, index) {
-        // Notify the member about the successful return
-        alert(`Notification sent: Return of "${book.title}" confirmed. Member: ${book.member}.`);
-  
-        // Remove the book from the table
-        this.returnedBooks.splice(index, 1);
-      },
+      async confirmReturn(book, index) {
+    try {
+      await axios.put(`http://localhost:3001/books/return/${book.id}`);
+
+      this.$emit(
+        "send-notification",
+        `Book "${book.title}" returned successfully by ${book.memberName}.`
+      );
+      this.borrowedBooks.splice(index, 1);
+    } catch (error) {
+      console.error("Error confirming book return:", error);
+    }
+  },
     },
   };
   </script>
