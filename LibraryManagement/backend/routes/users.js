@@ -107,7 +107,7 @@ router.get('/profile', async (req, res) => {
     }
 
     const user = await User.findByPk(decoded.id, {
-      attributes: ['username', 'email', 'address', 'phoneNumber', 'borrowedBooks'],
+      attributes: ['id','username', 'email', 'address', 'phoneNumber', 'borrowedBooks'],
     });
 
     if (!user) {
