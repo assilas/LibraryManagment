@@ -12,15 +12,17 @@
       />
 
       <!-- Avatar Options -->
-      <div v-if="showAvatarOptions" class="avatar-options">
-        <img
-          v-for="(avatar, index) in avatarOptions"
-          :key="index"
-          :src="avatar"
-          class="avatar-option"
-          @click="selectAvatar(avatar)"
-          :alt="'Avatar ' + (index + 1)"
-        />
+      <div v-if="showAvatarOptions" class="avatar-options-container">
+        <div class="avatar-options">
+          <img
+            v-for="(avatar, index) in avatarOptions"
+            :key="index"
+            :src="avatar"
+            class="avatar-option"
+            @click="selectAvatar(avatar)"
+            :alt="'Avatar ' + (index + 1)"
+          />
+        </div>
         <button class="close-options" @click="showAvatarOptions = false">Close</button>
       </div>
     </div>
@@ -31,9 +33,8 @@
     <!-- Buttons -->
     <div>
       <div v-if="userRole === 'member'">
-        <button @click="navigateTo('/BorrowingRecords')">Return a Book</button>
         <button @click="navigateTo('/Catalog')">Borrow a Book</button>
-        <button @click="navigateTo('/BorrowingRecords')">See My Borrowing Records</button>
+        <button @click="navigateTo('/BorrowingRecords')">Borrowing Records</button>
       </div>
 
       <div v-if="userRole === 'librarian'">
@@ -55,50 +56,38 @@ export default {
       defaultImage: '/src/assets/img/profileImage.jpg',
       showAvatarOptions: false,
       avatarOptions: [
-        'src/assets/img/avatar1.jpg',
-        'src/assets/img/avatar2.jpg',
-        'src/assets/img/profileImage.jpg',
+        'src/assets/img/avatar1.webp',
+        'src/assets/img/avatar2.webp',
+        'src/assets/img/avatar3.webp',
+        'src/assets/img/avatar4.webp',
+        'src/assets/img/avatar5.webp',
       ],
       userRole: '',
     };
   },
   async created() {
-  const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
-  console.log('Token:', token);
+    if (!token) {
+      alert('No token found. Please log in.');
+      this.$router.push('/auth');
+      return;
+    }
 
-  if (!token) {
-    alert('No token found. Please log in.');
-    this.$router.push('/auth');
-    return;
-  }
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      const res = await axios.get('http://localhost:3001/users/profile', { headers });
 
-  try {
-    // Utilisation d'un token JWT
-    const headers = { Authorization: `Bearer ${token}` };
-
-    console.log('Headers sent to server:', headers);
-
-    const res = await axios.get('http://localhost:3001/users/profile', { headers });
-
-    console.log('API Response:', res.data);
-
-    this.accountName = res.data.username;
-    this.userRole = res.data.role ? res.data.role.toLowerCase() : 'member';
-    this.profileImage = localStorage.getItem('profileImage') || this.defaultImage;
-
-    console.log('User role:', this.userRole);
-  } catch (err) {
-    console.error('Error fetching profile:', err.response ? err.response.data : err.message);
-    alert('Session expired or invalid. Please log in again.');
-    localStorage.clear();
-    this.$router.push('/auth');
-  }
-},
-
-
-
-
+      this.accountName = res.data.username;
+      this.userRole = res.data.role ? res.data.role.toLowerCase() : 'member';
+      this.profileImage = localStorage.getItem('profileImage') || this.defaultImage;
+    } catch (err) {
+      console.error('Error fetching profile:', err.message);
+      alert('Session expired or invalid. Please log in again.');
+      localStorage.clear();
+      this.$router.push('/auth');
+    }
+  },
   methods: {
     navigateTo(page) {
       this.$router.push(page);
@@ -124,23 +113,80 @@ export default {
   width: 80%;
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
+
 .profile-image-container {
   position: relative;
   display: inline-block;
   margin: 20px auto;
   text-align: center;
 }
+
 .profile-image {
   width: 150px;
   height: 150px;
   border-radius: 50%;
   object-fit: cover;
   border: 5px solid #b65c88;
-  transition: transform 0.3s;
+  cursor: pointer;
+  transition: transform 0.3s, border-color 0.3s;
 }
-.profile-image-container:hover .profile-image {
+
+.profile-image:hover {
   transform: scale(1.1);
+  border-color: #8e3d5c;
 }
+
+/* Avatar Options Container */
+.avatar-options-container {
+  position: absolute;
+  top: 170px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.avatar-options {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  gap: 15px;
+  justify-content: center;
+}
+
+.avatar-option {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.avatar-option:hover {
+  transform: scale(1.1);
+  border-color: #b65c88;
+}
+
+.close-options {
+  margin-top: 15px;
+  background-color: #b65c88;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.close-options:hover {
+  background-color: #8e3d5c;
+}
+
 button {
   background-color: rgba(193, 118, 128, 0.578);
   color: #fefefe;
@@ -151,9 +197,11 @@ button {
   cursor: pointer;
   font-size: 16px;
 }
+
 button:hover {
   background-color: #b36a6a;
 }
+
 .account-name {
   font-size: 1.2em;
   font-weight: bold;

@@ -83,21 +83,37 @@ export default {
 
     async returnBook(book) {
       const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You need to log in first.");
+        this.$router.push("/Authentification");
+        return;
+      }
+
       try {
         // Étape 1 : Mettre à jour le livre comme disponible
         await axios.put(
-          `http://localhost:3001/books/${book.id}`, 
-          { isAvailable: true }, // Change l'état du livre
+          `http://localhost:3001/books/${book.id}`,
+          { isAvailable: true },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Étape 2 : Mettre à jour la liste des livres empruntés côté utilisateur
+        console.log(`Book "${book.title}" marked as available.`);
+
+        // Étape 2 : Mettre à jour borrowedBooks dans le backend
+        const response = await axios.put(
+          "http://localhost:3001/users/return-book",
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        console.log("BorrowedBooks count updated:", response.data.borrowedBooks);
+
+        // Étape 3 : Mettre à jour localement
         this.borrowedBooks = this.borrowedBooks.filter((b) => b.id !== book.id);
 
-        // Étape 3 : Afficher un message de confirmation
         alert(`${book.title} has been successfully returned.`);
       } catch (error) {
-        console.error("Error returning the book:", error.message);
+        console.error("Error returning the book:", error.response?.data || error.message);
         alert("Failed to return the book. Please try again.");
       }
     },
