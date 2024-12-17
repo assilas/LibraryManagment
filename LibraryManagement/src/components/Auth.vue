@@ -175,24 +175,7 @@
         const { email, password } = this.formData;
 
         try {
-          // Vérification pour le libraire
-          if (email === 'librarian_admin@gmail.com' && password === 'librarian123') {
-            alert('Login successful as librarian!');
-
-            localStorage.setItem('token', 'librarian_token');
-            localStorage.setItem('userRole', 'librarian');
-            localStorage.setItem('userName', 'Librarian Admin');
-
-            this.$emit('update-login-state', {
-              isLoggedIn: true,
-              userRole: 'librarian',
-            });
-
-            this.$router.push('/MyAccount');
-            return;
-          }
-
-          // Envoie une requête normale au backend pour les membres
+          // Envoie une requête de connexion au backend
           const response = await fetch('http://localhost:3001/users/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -202,17 +185,25 @@
           const result = await response.json();
 
           if (response.ok) {
-            alert('Login successful!');
+            alert(result.message); // Affiche le message renvoyé par le serveur
+
+            // Stocke les informations renvoyées par le serveur dans le localStorage
             localStorage.setItem('token', result.token);
             localStorage.setItem('userRole', result.user.role);
             localStorage.setItem('userName', result.user.username);
 
+            // Met à jour l'état global de connexion
             this.$emit('update-login-state', {
               isLoggedIn: true,
               userRole: result.user.role,
             });
 
-            this.$router.push('/MyAccount');
+            // Redirection basée sur le rôle de l'utilisateur
+            if (result.user.role === 'librarian') {
+              this.$router.push('/MyAccount'); // Page du librarian
+            } else {
+              this.$router.push('/Dashboard'); // Page pour les membres
+            }
           } else {
             alert(result.error || 'Login failed. Check your credentials.');
           }
@@ -221,6 +212,7 @@
           alert('An error occurred during login. Please try again.');
         }
       },
+
 
       handleLogout() {
         // Déconnexion

@@ -43,19 +43,20 @@ router.post('/login', async (req, res) => {
     // Vérification pour le libraire
     if (email === 'librarian_admin@gmail.com' && password === 'librarian123') {
       console.log('Librarian login successful.');
-
+    
       const token = jwt.sign(
-        { email, role: 'librarian' },
-        'your_jwt_secret', 
+        { email, role: 'librarian' }, // Crée un token JWT avec le rôle "librarian"
+        'your_jwt_secret',
         { expiresIn: '1h' }
       );
-
+    
       return res.status(200).json({
         message: 'Login successful as librarian!',
-        token,
+        token, // Envoie le token JWT
         user: { username: 'Librarian Admin', role: 'librarian' },
       });
     }
+    
 
     // Recherche de l'utilisateur en base de données
     const user = await User.findOne({ where: { email } });
@@ -90,26 +91,36 @@ router.get('/profile', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Authorization header missing or malformed' });
-  }
+  }  
 
   const token = authHeader.split(' ')[1];
 
   try {
     const decoded = jwt.verify(token, 'your_jwt_secret');
+
+    if (decoded.role === 'librarian') {
+      return res.status(200).json({
+        username: 'Librarian Admin',
+        email: 'librarian_admin@gmail.com',
+        role: 'librarian',
+      });
+    }
+
     const user = await User.findByPk(decoded.id, {
-      attributes: ['username', 'email', 'address', 'phoneNumber'], // Inclure l'email ici
+      attributes: ['username', 'email', 'address', 'phoneNumber', 'borrowedBooks'],
     });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    res.json(user); // Retourner les données de l'utilisateur
+    res.json(user);
   } catch (err) {
-    console.error('Error fetching profile:', err);
+    console.error('Error fetching profile:', err.message);
     res.status(401).json({ error: 'Invalid or expired token.' });
   }
 });
+
 
 
 router.get('/members', async (req, res) => {

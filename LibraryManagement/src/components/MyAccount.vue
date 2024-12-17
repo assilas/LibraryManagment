@@ -64,9 +64,7 @@ export default {
   },
   async created() {
   const token = localStorage.getItem('token');
-  const role = localStorage.getItem('userRole');
 
-  console.log('Role:', role);
   console.log('Token:', token);
 
   if (!token) {
@@ -76,10 +74,8 @@ export default {
   }
 
   try {
-    const headers =
-      role === 'librarian'
-        ? { Authorization: 'librarian_token' }
-        : { Authorization: `Bearer ${token}` };
+    // Utilisation d'un token JWT (même pour librarian)
+    const headers = { Authorization: `Bearer ${token}` };
 
     console.log('Headers sent to server:', headers);
 
@@ -99,6 +95,7 @@ export default {
     this.$router.push('/auth');
   }
 },
+
 
 
   methods: {
